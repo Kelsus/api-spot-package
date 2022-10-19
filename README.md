@@ -29,3 +29,6 @@ NPM_TOKEN: GitHub personal access token.
 ## Version History
 * 1.0.0
     * Initial Release
+
+* 1.0.1
+    * Spot API Key
