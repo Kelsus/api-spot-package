@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 const https = require("https");
 const DEPLOY_SPOT_API_URL = "api.spot.kelsus.com";
-const DEPLOY_SPOT_API_PATH = "/";
+const DEPLOY_SPOT_API_PATH = "/activity";
 const MINIMUM_REQUIRED_PARAMETERS = [
   "application",
   "environment",
@@ -45,6 +45,7 @@ module.exports = {
    * Responsible for obtaining git information from the local directory using basic git actions
    */
   resolveLocalGitInformation: () => {
+    var path = require("path");
     const commitId = require("child_process")
       .execSync("git rev-parse HEAD")
       .toString()
@@ -62,11 +63,19 @@ module.exports = {
       .toString()
       .trim();
 
+    const _path = require("child_process")
+      .execSync(`git rev-parse --show-toplevel`)
+      .toString()
+      .trim();
+
+    const repoName = path.basename(_path);
+
     return {
       commitId,
       commitMessage,
       commitDate,
       commitBranch,
+      repoName,
     };
   },
 
@@ -76,7 +85,7 @@ module.exports = {
    * @param {Object} Activity parameters pased from execution call
    */
   buildActivityBody: (activityParameters) => {
-    const { commitId, commitMessage, commitDate, commitBranch } =
+    const { commitId, commitMessage, commitDate, commitBranch, repoName } =
       module.exports.resolveLocalGitInformation();
     const runtimeVersion = process.version;
     const { application, environment, type, repository, url, version } =
@@ -85,6 +94,7 @@ module.exports = {
     const activityBody = JSON.stringify({
       activity: {
         id: commitId,
+        service: repoName,
         eventType: EVENT_TYPE,
         createdAt: commitDate,
         commitId: commitId,
@@ -217,9 +227,11 @@ module.exports = {
       });
 
     if (!errorOnNotification) {
+      console.log(`Request successful: ${activityNotificationResult}`);
       console.log(`Notification successful for activity: ${activityBody}`);
     } else {
       console.log(`Notification failed for activity: ${activityBody}`);
+      console.log(`Request status: ${activityNotificationResult}`);
       console.log(`${errorOnNotification}`);
     }
   },
