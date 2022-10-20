@@ -20,30 +20,25 @@ module.exports = {
    * Includes only parameters with key within MINIMUM_REQUIRED_PARAMETERS list
    */
   parseActivityParameters: (params) => {
-    if (!params) {
-      const activityArgs = process.argv.slice(2);
+    const activityArgs = params.slice(2);
+    let activityParameters = {};
 
-      let activityParameters = {};
+    activityArgs
+      .filter((activityArg) => activityArg.indexOf("--") !== -1)
+      .forEach((activityArg) => {
+        // Getting 'param' from --param=value
+        const argKey = activityArg.split("=")[0].slice(2);
 
-      activityArgs
-        .filter((activityArg) => activityArg.indexOf("--") !== -1)
-        .forEach((activityArg) => {
-          // Getting 'param' from --param=value
-          const argKey = activityArg.split("=")[0].slice(2);
+        if (
+          MINIMUM_REQUIRED_PARAMETERS.includes(argKey) ||
+          OPTIONAL_PARAMETERS.includes(argKey)
+        ) {
+          // Assigning 'value' from --param=value
+          activityParameters[argKey] = activityArg.split("=")[1];
+        }
+      });
 
-          if (
-            MINIMUM_REQUIRED_PARAMETERS.includes(argKey) ||
-            OPTIONAL_PARAMETERS.includes(argKey)
-          ) {
-            // Assigning 'value' from --param=value
-            activityParameters[argKey] = activityArg.split("=")[1];
-          }
-        });
-
-      return activityParameters;
-    } else {
-      return params;
-    }
+    return activityParameters;
   },
 
   /**
@@ -186,9 +181,7 @@ module.exports = {
       "***************************************************************************"
     );
 
-    const activityParameters = module.exports.parseActivityParameters(
-      params || null
-    );
+    const activityParameters = module.exports.parseActivityParameters(params);
 
     if (
       !MINIMUM_REQUIRED_PARAMETERS.every((p) =>
