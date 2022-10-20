@@ -38,3 +38,4 @@ NPM_TOKEN: GitHub personal access token.
     * NPX Run process arguments
 * 1.0.4
     * Activity POST - Git repository data
+* 1.0.5

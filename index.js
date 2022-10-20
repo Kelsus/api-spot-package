@@ -19,6 +19,14 @@ module.exports = {
    * Read activity parameters in the shape of --param=value from script invocation
    * Includes only parameters with key within MINIMUM_REQUIRED_PARAMETERS list
    */
+  extractGitHubRepoPath: (url) => {
+    if (!url) return "undefined_name";
+    const match = url.match(
+      /^https?:\/\/(www\.)?github.com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)/
+    );
+    if (!match || !(match.groups?.owner && match.groups?.name)) return null;
+    return `${match.groups.name}`;
+  },
   parseActivityParameters: (params) => {
     const activityArgs = params.slice(2);
     let activityParameters = {};
@@ -63,19 +71,11 @@ module.exports = {
       .toString()
       .trim();
 
-    const _path = require("child_process")
-      .execSync(`git rev-parse --show-toplevel`)
-      .toString()
-      .trim();
-
-    const repoName = path.basename(_path);
-
     return {
       commitId,
       commitMessage,
       commitDate,
       commitBranch,
-      repoName,
     };
   },
 
@@ -85,12 +85,13 @@ module.exports = {
    * @param {Object} Activity parameters pased from execution call
    */
   buildActivityBody: (activityParameters) => {
-    const { commitId, commitMessage, commitDate, commitBranch, repoName } =
+    const { commitId, commitMessage, commitDate, commitBranch } =
       module.exports.resolveLocalGitInformation();
     const runtimeVersion = process.version;
     const { application, environment, type, repository, url, version } =
       activityParameters;
 
+    const repoName = module.exports.extractGitHubRepoPath(repository);
     const activityBody = JSON.stringify({
       activity: {
         id: commitId,
