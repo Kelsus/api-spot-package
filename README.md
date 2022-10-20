@@ -13,7 +13,9 @@ npm install -g @kelsus/api-spot-package
 Run the npx command with args to execute the post deploy script.
 
 ```
-npx spot-api --environment=dev --application=deploy-spot-api --type=server --repository=https://github.com/Kelsus/deploy-spot-api --url=https://api.spot.kelsus.com --version=0.0.1;
+npx spot-package --environment=dev --application=deploy-spot-api --type=server 
+--repository=https://github.com/Kelsus/deploy-spot-api 
+--url=https://api.spot.kelsus.com --version=0.0.1
 ```
 You can invoke the main() function with require('@kelsus/api-spot-package') and pass the parameters through the function.
 
@@ -32,3 +34,5 @@ NPM_TOKEN: GitHub personal access token.
 
 * 1.0.1
     * Spot API Key
+* 1.0.2
+    * NPX Executable
