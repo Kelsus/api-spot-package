@@ -1,11 +1,17 @@
 {
   "name": "@kelsus/api-spot-package",
-  "version": "1.0.1",
-  "description": "## Description Kelsus Spot API",
-  "main": "bin/index.js",
+  "version": "1.0.4",
+  "description": "Spot Post deploy request",
+  "main": "index.js",
   "bin": {
-    "spot-package": "bin/index.js"
+    "spot-package": "bin/npx.js"
   },
+  "keywords": [
+    "kelsus",
+    "build",
+    "deploy",
+    "tool"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kelsus/api-spot-package.git"
