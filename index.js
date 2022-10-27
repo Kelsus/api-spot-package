@@ -128,24 +128,22 @@ module.exports = {
    * @return {Object} options for the POST request
    */
   buildPOSTRequestOptions: (URL, path, contentLength) => {
-    let API_KEY = "";
-    if (process.env.SPOT_API_KEY) {
-      API_KEY = process.env.SPOT_API_KEY;
+    if (!process.env.SPOT_API_KEY) {
+      throw new Error("No Spot API KEY");
     } else {
-      console.log("No SPOT API KEY");
+      const options = {
+        hostname: URL,
+        port: 443,
+        path: path,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": contentLength,
+          "X-Api-Key": process.env.SPOT_API_KEY,
+        },
+      };
+      return options;
     }
-    const options = {
-      hostname: URL,
-      port: 443,
-      path: path,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Content-Length": contentLength,
-        "X-Api-Key": API_KEY,
-      },
-    };
-    return options;
   },
 
   /**
