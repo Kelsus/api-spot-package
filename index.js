@@ -28,25 +28,29 @@ module.exports = {
     return `${match.groups.name}`;
   },
   parseActivityParameters: (params) => {
-    const activityArgs = params.slice(2);
-    let activityParameters = {};
+    if (typeof params === "object" && !Array.isArray(params)) {
+      return params;
+    } else {
+      const activityArgs = params.slice(2);
+      let activityParameters = {};
 
-    activityArgs
-      .filter((activityArg) => activityArg.indexOf("--") !== -1)
-      .forEach((activityArg) => {
-        // Getting 'param' from --param=value
-        const argKey = activityArg.split("=")[0].slice(2);
+      activityArgs
+        .filter((activityArg) => activityArg.indexOf("--") !== -1)
+        .forEach((activityArg) => {
+          // Getting 'param' from --param=value
+          const argKey = activityArg.split("=")[0].slice(2);
 
-        if (
-          MINIMUM_REQUIRED_PARAMETERS.includes(argKey) ||
-          OPTIONAL_PARAMETERS.includes(argKey)
-        ) {
-          // Assigning 'value' from --param=value
-          activityParameters[argKey] = activityArg.split("=")[1];
-        }
-      });
+          if (
+            MINIMUM_REQUIRED_PARAMETERS.includes(argKey) ||
+            OPTIONAL_PARAMETERS.includes(argKey)
+          ) {
+            // Assigning 'value' from --param=value
+            activityParameters[argKey] = activityArg.split("=")[1];
+          }
+        });
 
-    return activityParameters;
+      return activityParameters;
+    }
   },
 
   /**
@@ -128,24 +132,22 @@ module.exports = {
    * @return {Object} options for the POST request
    */
   buildPOSTRequestOptions: (URL, path, contentLength) => {
-    let API_KEY = "";
     if (process.env.SPOT_API_KEY) {
-      API_KEY = process.env.SPOT_API_KEY;
+      throw new Error("No Spot API KEY");
     } else {
-      console.log("No SPOT API KEY");
+      const options = {
+        hostname: URL,
+        port: 443,
+        path: path,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": contentLength,
+          "X-Api-Key": process.env.SPOT_API_KEY,
+        },
+      };
+      return options;
     }
-    const options = {
-      hostname: URL,
-      port: 443,
-      path: path,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Content-Length": contentLength,
-        "X-Api-Key": API_KEY,
-      },
-    };
-    return options;
   },
 
   /**
@@ -191,7 +193,6 @@ module.exports = {
     console.log(
       "***************************************************************************"
     );
-
     const activityParameters = module.exports.parseActivityParameters(params);
 
     if (
@@ -237,3 +238,4 @@ module.exports = {
     }
   },
 };
+

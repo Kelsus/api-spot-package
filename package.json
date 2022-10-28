@@ -1,6 +1,6 @@
 {
   "name": "@kelsus/api-spot-package",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Spot Post deploy request",
   "main": "index.js",
   "bin": {
@@ -20,5 +20,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Kelsus",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {}
 }
