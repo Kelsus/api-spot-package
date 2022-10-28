@@ -193,7 +193,6 @@ module.exports = {
     console.log(
       "***************************************************************************"
     );
-    console.log(params, "paraaaaa");
     const activityParameters = module.exports.parseActivityParameters(params);
 
     if (
