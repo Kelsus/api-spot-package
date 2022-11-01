@@ -58,7 +58,6 @@ module.exports = {
    */
   getLastActivityId: async (service, environment) => {
     try {
-      if (!process.env.SPOT_API_KEY) throw new Error("No Spot API Key");
       const options = {
         hostname: DEPLOY_SPOT_API_URL,
         port: 443,
@@ -177,7 +176,6 @@ module.exports = {
    * @return {Object} options for the POST request
    */
   buildPOSTRequestOptions: (URL, path, contentLength) => {
-    if (!process.env.SPOT_API_KEY) throw new Error("No Spot API Key");
     const options = {
       hostname: URL,
       port: 4000,
