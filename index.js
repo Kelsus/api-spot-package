@@ -56,8 +56,48 @@ module.exports = {
   /**
    * Responsible for obtaining git information from the local directory using basic git actions
    */
+  getLastActivityId: async (service, environment) => {
+    try {
+      const options = {
+        hostname: DEPLOY_SPOT_API_URL,
+        port: 443,
+        path: `/dev/services/${service}/environments/${environment}/last`,
+        headers: {
+          "X-Api-Key": process.env.SPOT_API_KEY,
+        },
+        method: "GET",
+      };
+      const req = await module.exports.doRequest(options, "");
+      return req;
+    } catch (error) {
+      console.log("--Cannot get last activity");
+      console.log(error);
+    }
+  },
+  generateChangelog: async (currentCommitId, service, environment) => {
+    try {
+      const lastActivity = await module.exports.getLastActivityId(
+        service,
+        environment
+      );
+      const lastActivityJSON = JSON.parse(lastActivity.response);
+      const lastId = lastActivityJSON.commitId;
+      const changelog = require("child_process")
+        .execSync(
+          `
+      git log --pretty=format:"%h %s" ${lastId}..${currentCommitId}`
+        )
+        .toString()
+        .trim()
+        .split(/\r?\n/);
+      return changelog;
+    } catch (error) {
+      console.log("--Cannot generate changelog");
+      console.log(error);
+    }
+  },
   resolveLocalGitInformation: () => {
-    var path = require("path");
+    console.log("--Getting git repo info");
     const commitId = require("child_process")
       .execSync("git rev-parse HEAD")
       .toString()
@@ -74,7 +114,6 @@ module.exports = {
       .execSync("git rev-parse --abbrev-ref HEAD")
       .toString()
       .trim();
-
     return {
       commitId,
       commitMessage,
@@ -88,7 +127,7 @@ module.exports = {
    *
    * @param {Object} Activity parameters pased from execution call
    */
-  buildActivityBody: (activityParameters) => {
+  buildActivityBody: async (activityParameters) => {
     const { commitId, commitMessage, commitDate, commitBranch } =
       module.exports.resolveLocalGitInformation();
     const runtimeVersion = process.version;
@@ -96,6 +135,11 @@ module.exports = {
       activityParameters;
 
     const repoName = module.exports.extractGitHubRepoPath(repository);
+    const changelog = await module.exports.generateChangelog(
+      commitId,
+      repoName,
+      environment
+    );
     const activityBody = JSON.stringify({
       activity: {
         id: commitId,
@@ -116,9 +160,9 @@ module.exports = {
         serviceUrl: url,
         repoUrl: repository,
         lastDeploy: commitDate,
+        changelog: changelog,
       },
     });
-
     return activityBody;
   },
 
@@ -132,24 +176,19 @@ module.exports = {
    * @return {Object} options for the POST request
    */
   buildPOSTRequestOptions: (URL, path, contentLength) => {
-    if (process.env.SPOT_API_KEY) {
-      throw new Error("No Spot API KEY");
-    } else {
-      const options = {
-        hostname: URL,
-        port: 443,
-        path: path,
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Content-Length": contentLength,
-          "X-Api-Key": process.env.SPOT_API_KEY,
-        },
-      };
-      return options;
-    }
+    const options = {
+      hostname: URL,
+      port: 4000,
+      path: path,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": contentLength,
+        "X-Api-Key": process.env.SPOT_API_KEY,
+      },
+    };
+    return options;
   },
-
   /**
    * Do a request with options provided.
    *
@@ -159,33 +198,39 @@ module.exports = {
    * @return {Promise} a promise of request
    */
   doRequest: (options, data) => {
-    return new Promise((resolve, reject) => {
-      const req = https.request(options, (res) => {
-        res.setEncoding("utf8");
-        let responseBody = "";
+    try {
+      return new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+          res.setEncoding("utf8");
+          let responseBody = "";
 
-        res.on("data", (chunk) => {
-          responseBody += chunk;
+          res.on("data", (chunk) => {
+            responseBody += chunk;
+          });
+
+          res.on("end", () => {
+            resolve(responseBody);
+          });
         });
 
-        res.on("end", () => {
-          resolve(responseBody);
+        req.on("error", (err) => {
+          reject(err);
         });
-      });
 
-      req.on("error", (err) => {
-        reject(err);
+        req.write(data);
+        req.end();
       });
-
-      req.write(data);
-      req.end();
-    });
+    } catch (error) {
+      console.log("-- Cannot do a request");
+      console.log(error);
+    }
   },
 
   /**
    * Main functions responsible for performing deploy spot api activity notification
    */
   main: async (params) => {
+    if (!process.env.SPOT_API_KEY) throw new Error("No Spot API Key");
     console.log(
       "***************************************************************************"
     );
@@ -213,7 +258,9 @@ module.exports = {
 
     console.log(`Sending HTTP POST to ${apiURL}`);
 
-    const activityBody = module.exports.buildActivityBody(activityParameters);
+    const activityBody = await module.exports.buildActivityBody(
+      activityParameters
+    );
     const options = module.exports.buildPOSTRequestOptions(
       apiURL,
       DEPLOY_SPOT_API_PATH,
@@ -227,7 +274,6 @@ module.exports = {
       .catch((error) => {
         errorOnNotification = error;
       });
-
     if (!errorOnNotification) {
       console.log(`Request successful: ${activityNotificationResult}`);
       console.log(`Notification successful for activity: ${activityBody}`);
@@ -238,4 +284,3 @@ module.exports = {
     }
   },
 };
-
