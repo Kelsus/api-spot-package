@@ -76,3 +76,5 @@ NPM_TOKEN: NPM personal access token.
 * 1.0.5
 * 1.0.6
     * API Key and Parameters fix
+* 1.1.0
+    * Changelog Feature
