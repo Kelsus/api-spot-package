@@ -47,6 +47,9 @@ jobs:
       - run:
           name: Publish package
           command: npm publish --access public
+      - run:
+          name: Publish on Spot
+          command: npx spot-package --environment=prod --type=package --repository=https://github.com/Kelsus/api-spot-package --url=https://www.npmjs.com/package/@kelsus/api-spot-package --version=1.1.2
 
 workflows:
   version: 2
