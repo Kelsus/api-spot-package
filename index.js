@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 const https = require("https");
-const DEPLOY_SPOT_API_URL = "api.spot.kelsus.com";
+const DEPLOY_SPOT_API_URL = "u4bv25iyud.execute-api.us-east-1.amazonaws.com";
 const DEPLOY_SPOT_API_PATH = "/activity";
 const MINIMUM_REQUIRED_PARAMETERS = [
   "application",
@@ -61,7 +61,7 @@ module.exports = {
       const options = {
         hostname: DEPLOY_SPOT_API_URL,
         port: 443,
-        path: `/dev/services/${service}/environments/${environment}/last`,
+        path: `/prod/services/${service}/environments/${environment}/last`,
         headers: {
           "X-Api-Key": process.env.SPOT_API_KEY,
         },
