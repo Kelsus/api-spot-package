@@ -1,9 +1,8 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 const https = require("https");
-const { version } = require("./package.json");
 
 const DEPLOY_SPOT_API_URL = "u4bv25iyud.execute-api.us-east-1.amazonaws.com";
-const DEPLOY_SPOT_API_PATH = "/activity";
+const DEPLOY_SPOT_API_PATH = "/prod/activity";
 const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment"];
 const ALLOWED_PARAMETERS = [
   "id",
@@ -59,6 +58,11 @@ const CI_DEPLOY_OPTIONS = {
     environment: "AWS_BRANCH", //<-- IS IT OK TO USE THIS?
     version: "AWS_JOB_ID",
   },
+  VERCEL:{
+    environment: "VERCEL_ENV",
+    url: "VERCEL_URL",
+    service: "VERCEL_GIT_REPO_SLUG",
+  }
 };
 
 const EVENT_TYPE = "COMMIT";
@@ -82,6 +86,8 @@ module.exports = {
     if (typeof params === "object" && !Array.isArray(params)) {
       return params;
     } else {
+      const { version } = process.env.CIRCLECI ? require("~repo/package.json") : require("./package.json");
+
       let activityParameters = module.exports.checkForCIDeploy();
 
       activityParameters = {
@@ -185,10 +191,14 @@ module.exports = {
       .execSync("git rev-parse --abbrev-ref HEAD")
       .toString()
       .trim();
-    const _repository = require("child_process")
+    let _repository = require("child_process")
       .execSync("git remote -v")
       .toString()
       .trim();
+
+    if((!_repository || _repository == "") && process.env.VERCEL){
+      _repository = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`
+    }
 
     const repository = module.exports.extractGitHubRepoPath(_repository, true);
 
