@@ -186,7 +186,7 @@ module.exports = {
       .toString()
       .trim();
     const repository = require("child_process")
-      .execSync("git config --get remote.origin.url")
+      .execSync("git remote get-url origin")
       .toString()
       .trim();
 
