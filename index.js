@@ -356,7 +356,6 @@ module.exports = {
    * Main functions responsible for performing deploy spot api activity notification
    */
   main: async (params) => {
-    if (!process.env.SPOT_API_KEY) throw new Error("No Spot API Key");
     console.log(
       "***************************************************************************"
     );
@@ -364,49 +363,52 @@ module.exports = {
     console.log(
       "***************************************************************************"
     );
-    const activityParameters = module.exports.parseActivityParameters(params);
-
-    const notFoundParameters = MINIMUM_REQUIRED_PARAMETERS.filter(
-      (p) => !Object.keys(activityParameters).includes(p)
-    );
-
-    if (notFoundParameters && notFoundParameters.length > 0) {
-      console.log(
-        "Notification not sent. Some activity parameters are missing"
+    if (process.env.SPOT_API_KEY) {
+      const activityParameters = module.exports.parseActivityParameters(params);
+      const notFoundParameters = MINIMUM_REQUIRED_PARAMETERS.filter(
+        (p) => !Object.keys(activityParameters).includes(p)
       );
-      console.log(`Parameters missing: ${notFoundParameters}`);
-      process.exit(9);
-    }
 
-    let apiURL = activityParameters.testURL
-      ? activityParameters.testURL
-      : DEPLOY_SPOT_API_URL;
+      if (notFoundParameters && notFoundParameters.length > 0) {
+        console.log(
+          "Notification not sent. Some activity parameters are missing"
+        );
+        console.log(`Parameters missing: ${notFoundParameters}`);
+        process.exit(9);
+      }
 
-    console.log(`Sending HTTP POST to ${apiURL}`);
+      let apiURL = activityParameters.testURL
+        ? activityParameters.testURL
+        : DEPLOY_SPOT_API_URL;
 
-    const activityBody = await module.exports.buildActivityBody(
-      activityParameters
-    );
-    const options = module.exports.buildPOSTRequestOptions(
-      apiURL,
-      DEPLOY_SPOT_API_PATH,
-      activityBody.length
-    );
+      console.log(`Sending HTTP POST to ${apiURL}`);
 
-    let errorOnNotification;
+      const activityBody = await module.exports.buildActivityBody(
+        activityParameters
+      );
+      const options = module.exports.buildPOSTRequestOptions(
+        apiURL,
+        DEPLOY_SPOT_API_PATH,
+        activityBody.length
+      );
 
-    const activityNotificationResult = await module.exports
-      .doRequest(options, activityBody)
-      .catch((error) => {
-        errorOnNotification = error;
-      });
-    if (!errorOnNotification) {
-      console.log(`Request successful: ${activityNotificationResult}`);
-      console.log(`Notification successful for activity: ${activityBody}`);
+      let errorOnNotification;
+
+      const activityNotificationResult = await module.exports
+        .doRequest(options, activityBody)
+        .catch((error) => {
+          errorOnNotification = error;
+        });
+      if (!errorOnNotification) {
+        console.log(`Request successful: ${activityNotificationResult}`);
+        console.log(`Notification successful for activity: ${activityBody}`);
+      } else {
+        console.log(`Notification failed for activity: ${activityBody}`);
+        console.log(`Request status: ${activityNotificationResult}`);
+        console.log(`${errorOnNotification}`);
+      }
     } else {
-      console.log(`Notification failed for activity: ${activityBody}`);
-      console.log(`Request status: ${activityNotificationResult}`);
-      console.log(`${errorOnNotification}`);
+      console.log("SPOT_API_KEY Environment variable  not found.");
     }
   },
 };

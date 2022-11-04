@@ -1,10 +1,10 @@
 {
   "name": "@kelsus/api-spot-package",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Spot Post deploy request",
   "main": "index.js",
   "bin": {
-    "spot-package": "bin/npx.js"
+    "@kelsus/api-spot-package": "bin/npx.js"
   },
   "keywords": [
     "kelsus",
