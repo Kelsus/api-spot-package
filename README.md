@@ -12,7 +12,7 @@ Post deploy script for [Kelsus Spot](https://spot.kelsus.com/)
 # Execute
 Run the npx command with optional args to execute the post deploy script.
 ```
-npx spot-package
+npx @kelsus/api-spot-package
 ```
 ## Parameters
 
@@ -148,4 +148,6 @@ NPM_TOKEN: NPM personal access token.
 * 1.1.0
     * Changelog Feature
 * 1.2.0
-    * No parameters required to run - Get data from different CIs
+    * No parameters required to run
+    * Get data from different CIs
+    * npx @kelsus/api-spot-packge
