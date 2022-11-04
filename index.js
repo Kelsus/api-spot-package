@@ -4,7 +4,7 @@ const { version } = require("./package.json");
 
 const DEPLOY_SPOT_API_URL = "u4bv25iyud.execute-api.us-east-1.amazonaws.com";
 const DEPLOY_SPOT_API_PATH = "/activity";
-const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment", "status"];
+const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment"];
 const ALLOWED_PARAMETERS = [
   "id",
   "eventType",
