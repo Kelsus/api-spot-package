@@ -69,13 +69,13 @@ module.exports = {
    * Read activity parameters in the shape of --param=value from script invocation
    * Includes only parameters with key within MINIMUM_REQUIRED_PARAMETERS list
    */
-  extractGitHubRepoPath: (url) => {
+  extractGitHubRepoPath: (url, returnUrl = false) => {
     if (!url) return "undefined_name";
     const match = url.match(
-      /^https?:\/\/(www\.)?github.com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
+      /https?:\/\/(www\.)?github.com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
     );
     if (!match || !(match.groups?.owner && match.groups?.name)) return null;
-    return `${match.groups.name}`;
+    return !returnUrl ? `${match.groups.name}` : `${match[0]}`;
   },
 
   parseActivityParameters: (params) => {
@@ -185,10 +185,12 @@ module.exports = {
       .execSync("git rev-parse --abbrev-ref HEAD")
       .toString()
       .trim();
-    const repository = require("child_process")
-      .execSync("git remote get-url origin")
+    const _repository = require("child_process")
+      .execSync("git remote -v")
       .toString()
       .trim();
+
+    const repository = module.exports.extractGitHubRepoPath(_repository, true);
 
     return {
       commitId,
