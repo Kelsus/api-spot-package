@@ -8,11 +8,7 @@ Post deploy script for [Kelsus Spot](https://spot.kelsus.com/)
 - This request will generate a new service/application with an activity.
 - On the app you will be able to assign the service to a client, and on each deploy it will trigger the script again, generating a new activity.
 - The script supports differents environments for the same app.
-# Installing
 
-```
-npm install @kelsus/api-spot-package
-```
 # Execute
 Run the npx command with optional args to execute the post deploy script.
 ```
@@ -70,9 +66,29 @@ npx spot-package --service=api-spot-package
 --lastDeploy
 --changelog
 ```
-### Call the function
-You can invoke the main() function with require('@kelsus/api-spot-package') and pass the parameters through the function.
-- The script will print in console if the request was succesful or failed.
+
+## Alternative Env Variables
+In case that you want to overwrite data, Spot will look for these Env Variables
+```
+- application = "APP_NAME"
+- service = "SERVICE_NAME"
+- environment = "ENVIRONMENT_NAME"
+- status = "BUILD_STATUS"
+- version = "VERSION"
+- url = "APP_URL"
+```
+
+## Call the function
+- ```npm install @kelsus/api-spot-package```
+- You can invoke the main() function with require('@kelsus/api-spot-package') and pass the parameters through the function.
+- E.g:
+```
+// Require package
+const SPOT = require('@kelsus/api-spot-package');
+
+//Call the function an pass parameters as an object
+SPOT.main({application: 'api-spot-package', env: 'develop'});
+```
 
 
 ## Request body
