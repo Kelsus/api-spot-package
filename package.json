@@ -4,7 +4,7 @@
   "description": "Spot Post deploy request",
   "main": "index.js",
   "bin": {
-    "spot-package": "bin/npx.js"
+    "@kelsus/api-spot-package": "bin/npx.js"
   },
   "keywords": [
     "kelsus",
