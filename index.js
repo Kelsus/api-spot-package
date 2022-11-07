@@ -86,7 +86,7 @@ module.exports = {
     if (typeof params === "object" && !Array.isArray(params)) {
       return params;
     } else {
-      const { version } = process.env.CIRCLECI ? require("~repo/package.json") : require("./package.json");
+      const { version } = process.env.CIRCLECI ? require("~/repo/package.json") : require("./package.json");
 
       let activityParameters = module.exports.checkForCIDeploy();
 
