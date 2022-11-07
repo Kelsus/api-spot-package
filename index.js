@@ -257,7 +257,7 @@ module.exports = {
         ...(version && { version: version}),
         ...(type && { serviceType: type}),
         ...(runtimeVersion && { runtimeVersion: runtimeVersion}),
-        ...(service && { serviceUrl: url}),
+        ...(url && { serviceUrl: url}),
         ...(repository && { repoUrl: repository}),
       },
     });
