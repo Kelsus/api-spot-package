@@ -1,7 +1,6 @@
 const { version } = require("./package.json");
-const spot = require("@kelsus/api-spot-package");
+const spot = require('./index');
 spot.main({
-  application: null,
   environment: "prod",
   type: "package",
   service: "api-spot-package",
