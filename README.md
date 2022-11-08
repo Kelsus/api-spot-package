@@ -144,3 +144,5 @@ NPM_TOKEN: NPM personal access token.
     * No parameters required to run
     * Get data from different CIs
     * npx @kelsus/api-spot-packge
+* 1.3.0
+    * Node image updated on CircleCI
