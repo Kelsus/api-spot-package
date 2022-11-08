@@ -379,7 +379,7 @@ module.exports = {
       console.log(
         "***************************************************************************"
       );
-      if (!process.env.SPOT_API_KEY) {
+      if (process.env.SPOT_API_KEY) {
         const activityParameters =
           module.exports.parseActivityParameters(params);
         const notFoundParameters = MINIMUM_REQUIRED_PARAMETERS.filter(
