@@ -133,17 +133,10 @@ NPM_TOKEN: NPM personal access token.
 ## Version History
 * 1.0.0
     * Initial Release
-
-* 1.0.1
     * Spot API Key
-* 1.0.2
     * NPX Executable
-* 1.0.3
     * NPX Run process arguments
-* 1.0.4
     * Activity POST - Git repository data
-* 1.0.5
-* 1.0.6
     * API Key and Parameters fix
 * 1.1.0
     * Changelog Feature

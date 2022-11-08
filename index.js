@@ -87,13 +87,9 @@ module.exports = {
       return params;
     } else {
       try {
-        const { version } = require("child_process")
-          .execSync(
-            `echo $(cat ./package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
-        `
-          )
-          .toString()
-          .trim();
+        const { version } = process.env.CIRCLECI
+          ? null
+          : require("./package.json");
 
         let activityParameters = module.exports.checkForCIDeploy();
 
