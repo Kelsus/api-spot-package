@@ -91,10 +91,13 @@ module.exports = {
 
         let activityParameters = module.exports.checkForCIDeploy();
 
+        if(version){
+          console.log(`Got 'version' ${version} from package.json. (It might be replaced with an Env variable)`)
+        }
+
         activityParameters = {
           ...activityParameters,
-          ...(version && { version } &&
-            console.log("Got 'version' from package.json. Using this value")),
+          ...(version && { version }),
           ...module.exports.getVariablesFromEnv(),
         };
 
