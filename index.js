@@ -170,6 +170,11 @@ module.exports = {
         .toString()
         .trim()
         .split(/\r?\n/);
+
+      if (!lastId && changelog.length > 15) {
+        changelog.slice(0, 15);
+        changelog.push("...");
+      }
       return changelog;
     } catch (error) {
       console.log("--Cannot generate changelog");
@@ -228,12 +233,13 @@ module.exports = {
       environment,
       service = null,
       application = null,
-      type = null,
-      url = null,
+      serviceType = null,
+      serviceUrl = null,
       version = null,
       status = null,
       runtime = null,
       eventType = null,
+      repoUrl = null,
     } = activityParameters;
 
     const repoName = module.exports.extractGitHubRepoPath(repository);
@@ -242,7 +248,7 @@ module.exports = {
       service ?? repoName,
       environment
     );
-    const activityBody = JSON.stringify({
+    const activityBody = {
       activity: {
         id: commitId,
         service: service ?? repoName,
@@ -257,14 +263,14 @@ module.exports = {
         eventType: eventType ?? EVENT_TYPE,
         lastDeploy: commitDate,
         changelog: changelog,
-        ...(application && { application: application }),
-        ...(version && { version: version }),
-        ...(type && { serviceType: type }),
-        ...(runtimeVersion && { runtimeVersion: runtimeVersion }),
-        ...(url && { serviceUrl: url }),
-        ...(repository && { repoUrl: repository }),
+        ...(application && { application }),
+        ...(version && { version }),
+        ...(serviceType && { serviceType }),
+        ...(runtimeVersion && { runtimeVersion }),
+        ...(serviceUrl && { serviceUrl }),
+        ...((repository || repoUrl) && { repoUrl: repoUrl ?? repository }),
       },
-    });
+    };
     return activityBody;
   },
 
@@ -382,8 +388,13 @@ module.exports = {
       if (process.env.SPOT_API_KEY) {
         const activityParameters =
           module.exports.parseActivityParameters(params);
+
+        const activityBody = await module.exports.buildActivityBody(
+          activityParameters
+        );
+
         const notFoundParameters = MINIMUM_REQUIRED_PARAMETERS.filter(
-          (p) => !Object.keys(activityParameters).includes(p)
+          (p) => !Object.keys(activityBody.activity).includes(p)
         );
 
         if (notFoundParameters && notFoundParameters.length > 0) {
@@ -400,26 +411,25 @@ module.exports = {
 
         console.log(`Sending HTTP POST to ${apiURL}`);
 
-        const activityBody = await module.exports.buildActivityBody(
-          activityParameters
-        );
+        const activity = JSON.stringify(activityBody);
+
         const options = module.exports.buildPOSTRequestOptions(
           apiURL,
           DEPLOY_SPOT_API_PATH,
-          activityBody.length
+          activity.length
         );
 
         let errorOnNotification;
         const activityNotificationResult = await module.exports
-          .doRequest(options, activityBody)
+          .doRequest(options, activity)
           .catch((error) => {
             errorOnNotification = error;
           });
         if (!errorOnNotification) {
           console.log(`Request successful: ${activityNotificationResult}`);
-          console.log(`Notification successful for activity: ${activityBody}`);
+          console.log(`Notification successful for activity: ${activity}`);
         } else {
-          console.log(`Notification failed for activity: ${activityBody}`);
+          console.log(`Notification failed for activity: ${activity}`);
           console.log(`Request status: ${activityNotificationResult}`);
           console.log(`${errorOnNotification}`);
         }
