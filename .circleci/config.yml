@@ -49,6 +49,7 @@ jobs:
           command: npm publish --access public
       - run:
           name: Publish on Spot
+          working_directory: ~/repo
           command: npx @kelsus/api-spot-package --environment=prod --serviceType=package --repoUrl=https://github.com/Kelsus/api-spot-package --serviceUrl=https://www.npmjs.com/package/@kelsus/api-spot-package
 
 workflows:

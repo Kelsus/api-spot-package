@@ -87,6 +87,7 @@ module.exports = {
       return params;
     } else {
       try {
+
         const { version } = require("./package.json") || null;
 
         let activityParameters = module.exports.checkForCIDeploy();
