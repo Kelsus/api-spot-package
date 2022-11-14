@@ -160,11 +160,11 @@ module.exports = {
       );
       let lastActivityJSON;
       try {
-        lastActivityJSON = JSON.parse(lastActivity.response);
+        lastActivityJSON = JSON.parse(lastActivity);
       } catch (e) {
         lastActivityJSON = null;
       }
-      const lastId = lastActivityJSON ? lastActivityJSON.commitId : null;
+      const lastId = lastActivityJSON ? lastActivityJSON.response.commitId : null;
       const changelog = require("child_process")
         .execSync(
           `git log --pretty=format:"%h %s" ${
@@ -178,6 +178,8 @@ module.exports = {
       if (!lastId && changelog.length > 15) {
         changelog.slice(0, 15);
         changelog.push("...");
+      }else if(changelog.length == 1 && changelog[0] === ''){
+        return [];
       }
       return changelog;
     } catch (error) {
