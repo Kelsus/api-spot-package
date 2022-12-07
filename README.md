@@ -146,3 +146,4 @@ NPM_TOKEN: NPM personal access token.
     * npx @kelsus/api-spot-packge
 * 1.3.0
     * Node image updated on CircleCI
+    * New API endpoint

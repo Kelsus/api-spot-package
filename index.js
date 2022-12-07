@@ -1,8 +1,8 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 const https = require("https");
 
-const DEPLOY_SPOT_API_URL = "u4bv25iyud.execute-api.us-east-1.amazonaws.com";
-const DEPLOY_SPOT_API_PATH = "/prod/activity";
+const DEPLOY_SPOT_API_URL = "zwdknc0wz3.execute-api.us-east-1.amazonaws.com";
+const DEPLOY_SPOT_API_PATH = "/activity";
 const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment"];
 const ALLOWED_PARAMETERS = [
   "id",
