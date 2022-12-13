@@ -298,7 +298,7 @@ module.exports = {
       headers: {
         "Content-Type": "application/json",
         "Content-Length": contentLength,
-        "X-Api-Key": process.env.SPOT_API_KEY,
+        "x-api-key": process.env.SPOT_API_KEY,
       },
     };
     return options;
