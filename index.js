@@ -87,13 +87,14 @@ module.exports = {
       return params;
     } else {
       try {
-
         const { version } = require("./package.json") || null;
 
         let activityParameters = module.exports.checkForCIDeploy();
 
-        if(version){
-          console.log(`Got 'version' ${version} from package.json. (It might be replaced with an Env variable)`)
+        if (version) {
+          console.log(
+            `Got 'version' ${version} from package.json. (It might be replaced with an Env variable)`
+          );
         }
 
         activityParameters = {
@@ -164,7 +165,9 @@ module.exports = {
       } catch (e) {
         lastActivityJSON = null;
       }
-      const lastId = lastActivityJSON ? lastActivityJSON.response.commitId : null;
+      const lastId = lastActivityJSON
+        ? lastActivityJSON.response.commitId
+        : null;
       const changelog = require("child_process")
         .execSync(
           `git log --pretty=format:"%h %s" ${
@@ -178,9 +181,10 @@ module.exports = {
       if (!lastId && changelog.length > 15) {
         changelog.slice(0, 15);
         changelog.push("...");
-      }else if(changelog.length == 1 && changelog[0] === ''){
+      } else if (changelog.length == 1 && changelog[0] === "") {
         return [];
       }
+      console.log("--Changelog generated: ", changelog);
       return changelog;
     } catch (error) {
       console.log("--Cannot generate changelog");
