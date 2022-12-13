@@ -138,7 +138,7 @@ module.exports = {
       const options = {
         hostname: DEPLOY_SPOT_API_URL,
         port: 443,
-        path: `/prod/services/${service}/environments/${environment}/last`,
+        path: `/services/${service}/environments/${environment}/last`,
         headers: {
           "X-Api-Key": process.env.SPOT_API_KEY,
         },
