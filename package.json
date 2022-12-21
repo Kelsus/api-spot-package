@@ -6,6 +6,9 @@
   "bin": {
     "@kelsus/api-spot-package": "bin/npx.js"
   },
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "keywords": [
     "kelsus",
     "build",
