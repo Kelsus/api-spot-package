@@ -80,7 +80,7 @@ In case that you want to overwrite data, Spot will look for these Env Variables
 
 ## Call the function
 - ```npm install @kelsus/api-spot-package```
-- When configuring the installation on the CI, it is recomended to set the flag `engine-strict true` so it will be installed only when Node engine version is supported. Reference: https://docs.npmjs.com/cli/v9/using-npm/config#engine-strict
+- When configuring the installation on the CI, it is recomended to set the flag `engine-strict true` so it will be installed only when Node engine version is supported. Ref: https://docs.npmjs.com/cli/v9/using-npm/config#engine-strict
 - You can invoke the main() function with require('@kelsus/api-spot-package') and pass the parameters through the function.
 - E.g:
 ```
