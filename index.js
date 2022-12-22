@@ -78,7 +78,7 @@ module.exports = {
     const match = url.match(
       /https?:\/\/(www\.)?github.com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
     );
-    if (!match || !(match.groups?.owner && match.groups?.name)) return null;
+    if (!match || !match.groups || !(match.groups.owner && match.groups.name)) return null;
     return !returnUrl ? `${match.groups.name}` : `${match[0]}`;
   },
 
@@ -255,22 +255,22 @@ module.exports = {
     const repoName = module.exports.extractGitHubRepoPath(repository);
     const changelog = await module.exports.generateChangelog(
       commitId,
-      service ?? repoName,
+      service ? service : repoName,
       environment
     );
     const activityBody = {
       activity: {
         id: commitId,
-        service: service ?? repoName,
+        service: service ? service : repoName,
         environment: environment,
         commitId: commitId,
         commitBranch: commitBranch,
         commitDate: commitDate,
         commitMessage: commitMessage,
         createdAt: commitDate,
-        status: status ?? ACTIVITY_STATUS,
-        runtime: runtime ?? RUNTIME,
-        eventType: eventType ?? EVENT_TYPE,
+        status: status ? status : ACTIVITY_STATUS,
+        runtime: runtime ? runtime : RUNTIME,
+        eventType: eventType ? eventType : EVENT_TYPE,
         lastDeploy: commitDate,
         changelog: changelog,
         ...(application && { application }),
@@ -278,7 +278,7 @@ module.exports = {
         ...(serviceType && { serviceType }),
         ...(runtimeVersion && { runtimeVersion }),
         ...(serviceUrl && { serviceUrl }),
-        ...((repository || repoUrl) && { repoUrl: repoUrl ?? repository }),
+        ...((repository || repoUrl) && { repoUrl: repoUrl ? repoUrl : repository }),
       },
     };
     return activityBody;
