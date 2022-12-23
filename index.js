@@ -103,26 +103,31 @@ module.exports = {
           ...module.exports.getVariablesFromEnv(),
         };
 
-        const activityArgs = params.slice(2);
+        if (!!params) {
+          const activityArgs = params.slice(2);
+          console.log(activityArgs)
 
-        activityArgs
-          .filter((activityArg) => activityArg.indexOf("--") !== -1)
-          .forEach((activityArg) => {
-            // Getting 'param' from --param=value
-            const argKey = activityArg.split("=")[0].slice(2);
-            if (
-              ALLOWED_PARAMETERS.includes(argKey) ||
-              OPTIONAL_PARAMETERS.includes(argKey)
-            ) {
-              // Assigning 'value' from --param=value
-              if (activityParameters[argKey]) {
-                console.log(
-                  `Environment variable already exists. Overriding with process parameter "--${argKey}"`
-                );
+          activityArgs
+            .filter((activityArg) => activityArg.indexOf("--") !== -1)
+            .forEach((activityArg) => {
+              // Getting 'param' from --param=value
+              const argKey = activityArg.split("=")[0].slice(2);
+              if (
+                ALLOWED_PARAMETERS.includes(argKey) ||
+                OPTIONAL_PARAMETERS.includes(argKey)
+              ) {
+                // Assigning 'value' from --param=value
+                if (activityParameters[argKey]) {
+                  console.log(
+                    `Environment variable already exists. Overriding with process parameter "--${argKey}"`
+                  );
+                }
+                activityParameters[argKey] = activityArg.split("=")[1];
               }
-              activityParameters[argKey] = activityArg.split("=")[1];
-            }
-          });
+            });
+        } else {
+          console.log("No params received from command line (Tool not executed by CLI). Using inferred parameters")
+        }
 
         return activityParameters;
       } catch (error) {
