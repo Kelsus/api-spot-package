@@ -87,24 +87,16 @@ module.exports = {
       return params;
     } else {
       try {
-        const { version } = require("./package.json") || null;
-
         let activityParameters = module.exports.checkForCIDeploy();
-
-        if (version) {
-          console.log(
-            `Got 'version' ${version} from package.json. (It might be replaced with an Env variable)`
-          );
-        }
 
         activityParameters = {
           ...activityParameters,
-          ...(version && { version }),
           ...module.exports.getVariablesFromEnv(),
         };
 
         if (!!params) {
           const activityArgs = params.slice(2);
+          console.log("Passed parameters:")
           console.log(activityArgs)
 
           activityArgs
