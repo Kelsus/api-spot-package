@@ -69,8 +69,8 @@ const ACTIVITY_STATUS = "OK";
 const RUNTIME = "NodeJS";
 module.exports = {
   /**
-   * Read activity parameters in the shape of --param=value from script invocation
-   * Includes only parameters with key within MINIMUM_REQUIRED_PARAMETERS list
+   * Extracts github repo owner and name.
+   * Must be a Github repository: Gitlab, Bitbucket, etc will not work properly
    */
   extractGitHubRepoPath: (url, returnUrl = false) => {
     if (!url) return "undefined_name";
@@ -81,6 +81,10 @@ module.exports = {
     return !returnUrl ? `${match.groups.name}` : `${match[0]}`;
   },
 
+  /**
+   * Read activity parameters in the shape of --param=value from script invocation
+   * Includes only parameters with key within MINIMUM_REQUIRED_PARAMETERS list
+   */
   parseActivityParameters: (params) => {
     if (typeof params === "object" && !Array.isArray(params)) {
       return params;
