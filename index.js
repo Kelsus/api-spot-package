@@ -38,8 +38,7 @@ const ALTERNATIVE_ENV_VARIABLES = {
 
 const CI_DEPLOY_OPTIONS = {
   SEED_BUILD_ID: {
-    application: "SEED_APP_NAME",
-    service: "SEED_SERVICE_NAME",
+    service: "SEED_APP_NAME",
     environment: "SEED_STAGE_NAME",
     version: "SEED_BUILD_ID",
   },
