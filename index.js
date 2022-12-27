@@ -165,7 +165,7 @@ module.exports = {
       } catch (e) {
         lastActivityJSON = null;
       }
-      const lastId = lastActivityJSON
+      const lastId = lastActivityJSON && lastActivityJSON.response
         ? lastActivityJSON.response.commitId
         : null;
       const changelog = require("child_process")
