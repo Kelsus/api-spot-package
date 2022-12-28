@@ -1,6 +1,8 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 const https = require("https");
 
+const packageJsonFinder = require('./find-package-json');
+
 const DEPLOY_SPOT_API_URL = "zwdknc0wz3.execute-api.us-east-1.amazonaws.com";
 const DEPLOY_SPOT_API_PATH = "/activity";
 const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment"];
@@ -99,8 +101,23 @@ module.exports = {
       try {
         let activityParameters = module.exports.checkForCIDeploy();
 
+        console.log("Trying to resolve version from parent package.json");
+
+        let packageJson = packageJsonFinder().next();
+        let version = packageJson.value.version;
+
+        try {
+          while (packageJson && !packageJson.done) {
+            version = packageJson.value.version;
+            packageJson = packageJson.next();
+          }
+        } catch(e) {
+          console.log(`Error trying to resolve parent package.json ${e}`)
+        }
+
         activityParameters = {
           ...activityParameters,
+          ...(version && { version }),
           ...module.exports.getVariablesFromEnv(),
         };
 
