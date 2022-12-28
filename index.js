@@ -74,10 +74,17 @@ module.exports = {
    */
   extractGitHubRepoPath: (url, returnUrl = false) => {
     if (!url) return "undefined_name";
-    const match = url.match(
-      /https?:\/\/(www\.)?github.com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
+    // Trying to match ssh based repo url
+    let match = url.match(
+      /git@(github|gitlab).com:(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
     );
-    if (!match || !match.groups || !(match.groups.owner && match.groups.name)) return null;
+    if (!match || !match.groups || !(match.groups.owner && match.groups.name)) {
+      // Let's try to match https based repo url
+      match = url.match(
+        /https?:\/\/(www\.)?(github|gitlab).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
+      );
+      if (!match || !match.groups || !(match.groups.owner && match.groups.name)) return null
+    }
     return !returnUrl ? `${match.groups.name}` : `${match[0]}`;
   },
 
