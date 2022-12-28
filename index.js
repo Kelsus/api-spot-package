@@ -161,6 +161,7 @@ module.exports = {
   },
 
   generateChangelog: async (currentCommitId, service, environment) => {
+    const LATEST_COMMIT_COUNT = 20;
     try {
       const lastActivity = await module.exports.getLastActivityId(
         service,
@@ -178,8 +179,8 @@ module.exports = {
       const changelog = require("child_process")
         .execSync(
           `git log --pretty=format:"%h %s" ${
-            lastId ? lastId + ".." : ""
-          }${currentCommitId}`
+            lastId ? lastId + ".." + currentCommitId : `-n ${LATEST_COMMIT_COUNT}`
+          }`
         )
         .toString()
         .trim()
