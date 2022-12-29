@@ -9,6 +9,7 @@ jobs:
       - image: cimg/node:14.18.1
     working_directory: ~/repo
     steps:
+      - checkout
       - run:
           name: bump package version
           command: |
