@@ -18,6 +18,7 @@ jobs:
       - run:
           name: bump package version
           command: |
+            git remote set-url origin https://github.com/Kelsus/api-spot-package.git
             npm version patch  -m "Bumped version number to %s [ci skip]"
             git push origin main
             git push --tags
