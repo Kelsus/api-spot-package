@@ -11,6 +11,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: git config
+          command: |
+            git config user.email "dev-ops@kelsus.com"
+            git config user.name "Kelsus"      
+      - run:
           name: bump package version
           command: |
             npm version patch  -m "Bumped version number to %s [ci skip]"
