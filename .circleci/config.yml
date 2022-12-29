@@ -4,6 +4,17 @@
 #
 version: 2.1
 jobs:
+  bump:
+    docker:
+      - image: cimg/node:14.18.1
+    working_directory: ~/repo
+    steps:
+      - run:
+          name: bump package version
+          command: |
+            npm version patch  -m "Bumped version number to %s [ci skip]"
+            git push origin main
+            git push --tags
   build:
     docker:
       - image: cimg/node:14.18.1
@@ -66,13 +77,18 @@ workflows:
   build_and_publish:
     jobs:
       - test
-      - build
+      - bump:
+          filters:
+            branches:
+              only:
+                - main
+      - build:
+          requires:
+            - bump
       - deploy:
           requires:
             - build
           filters:
-            tags:
-              only: /^v.*/
             branches:
               only:
                 - main
