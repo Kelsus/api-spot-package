@@ -130,6 +130,7 @@ SPOT_API_KEY
 ## CircleCI Environment Variables
 ```
 NPM_TOKEN: NPM personal access token.
+SSH_KEY_FINGERPRINT: fingerprint generated with github ssh deploy key
 ```
 ## Version History
 * 1.0.0
