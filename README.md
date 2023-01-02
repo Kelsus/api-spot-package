@@ -10,6 +10,25 @@ Post deploy script for [Kelsus Spot](https://spot.kelsus.com/)
 - The script supports differents environments for the same app.
 - Support for different CIs
 
+# How to use it
+Set the ***`SPOT_API_KEY`*** environment variable. (Ask Spot team members to provide it).
+
+## Call the service either by
+
+1. Using NPX from a CLI, passing arguments if needed:
+
+```
+npx @kelsus/api-spot-package --service=spot-api
+```
+
+
+2.  Or installing this package on you deployer and then invoking main():
+```
+const SPOT = require('@kelsus/spot-api-package')
+
+SPOT.main(args)
+```
+
 # Execute
 Run the npx command with optional args to execute the post deploy script.
 ```
