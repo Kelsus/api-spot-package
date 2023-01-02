@@ -18,7 +18,7 @@ Set the ***`SPOT_API_KEY`*** environment variable. (Ask Spot team members to pro
 1. Using NPX from a CLI, passing arguments if needed:
 
 ```
-npx @kelsus/api-spot-package --service=spot-api
+npx @kelsus/api-spot-package
 ```
 
 
