@@ -24,7 +24,7 @@ npx @kelsus/api-spot-package --service=spot-api
 
 2.  Or installing this package on you deployer and then invoking main():
 ```
-const SPOT = require('@kelsus/spot-api-package')
+const SPOT = require('@kelsus/api-spot-package')
 
 SPOT.main(args)
 ```
