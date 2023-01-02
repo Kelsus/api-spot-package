@@ -48,6 +48,7 @@ const CI_DEPLOY_OPTIONS = {
     service: "CIRCLE_PROJECT_REPONAME",
     environment: "CIRCLE_BRANCH", //<-- IS IT OK TO USE THIS?
     version: "CIRCLE_BUILD_NUM",
+    repoUrl: "CIRCLE_REPOSITORY_URL"
   },
   NETLIFY: {
     url: "URL",
@@ -247,23 +248,23 @@ module.exports = {
       .execSync("git rev-parse --abbrev-ref HEAD")
       .toString()
       .trim();
-    let _repository = require("child_process")
+    let remoteFromLocalGit = require("child_process")
       .execSync("git config --get remote.origin.url")
       .toString()
       .trim();
 
-    if ((!_repository || _repository == "") && process.env.VERCEL) {
-      _repository = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`;
+    if ((!remoteFromLocalGit || remoteFromLocalGit == "") && process.env.VERCEL) {
+      remoteFromLocalGit = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`;
     }
 
-    const repository = module.exports.extractGitHubRepoPath(_repository, true);
+    const remoteFromLocalGitRepoUrl = module.exports.extractGitHubRepoPath(_remoteFromLocalGit, true);
 
     return {
       commitId,
       commitMessage,
       commitDate,
       commitBranch,
-      repository,
+      remoteFromLocalGitRepoUrl,
     };
   },
 
@@ -273,7 +274,7 @@ module.exports = {
    * @param {Object} Activity parameters pased from execution call
    */
   buildActivityBody: async (activityParameters) => {
-    const { commitId, commitMessage, commitDate, commitBranch, repository } =
+    const { commitId, commitMessage, commitDate, commitBranch, remoteFromLocalGitRepoUrl } =
       module.exports.resolveLocalGitInformation();
     const runtimeVersion = process.version;
     const {
@@ -289,7 +290,9 @@ module.exports = {
       repoUrl = null,
     } = activityParameters;
 
-    const repoName = module.exports.extractGitHubRepoPath(repository);
+    const repositoryUrl = repoUrl ? repoUrl : remoteFromLocalGitRepoUrl;
+
+    const repoName = module.exports.extractGitHubRepoPath(repositoryUrl);
     const changelog = await module.exports.generateChangelog(
       commitId,
       service ? service : repoName,
@@ -315,7 +318,7 @@ module.exports = {
         ...(serviceType && { serviceType }),
         ...(runtimeVersion && { runtimeVersion }),
         ...(serviceUrl && { serviceUrl }),
-        ...((repository || repoUrl) && { repoUrl: repoUrl ? repoUrl : repository }),
+        ...(repositoryUrl && { repoUrl: repositoryUrl }),
       },
     };
     return activityBody;
