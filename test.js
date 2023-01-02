@@ -54,9 +54,18 @@ desc("Test suite: extractGitHubRepoPath", () => {
     assert.strictEqual(main.extractGitHubRepoPath("git@gitlab.com:Kelsus/spot-api.git"), "spot-api");
   });
 
-  it('Should get the project URL git@gitlab.com:Kelsus/spot-api.git', () => {
+  it('Should get the project URL from git@gitlab.com:Kelsus/spot-api.git', () => {
     assert.strictEqual(main.extractGitHubRepoPath("git@gitlab.com:Kelsus/spot-api.git", true), "https://gitlab.com/Kelsus/spot-api.git");
   });
+
+  it('Should get the project name from https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api.git', () => {
+    assert.strictEqual(main.extractGitHubRepoPath("https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api.git"), "spot-api");
+  });
+
+  it('Should get the project URL from https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api.git', () => {
+    assert.strictEqual(main.extractGitHubRepoPath("https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api.git", true), "https://github.com/Kelsus/spot-api.git");
+  });
 });
+
 
 

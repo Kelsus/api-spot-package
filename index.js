@@ -48,6 +48,7 @@ const CI_DEPLOY_OPTIONS = {
     service: "CIRCLE_PROJECT_REPONAME",
     environment: "CIRCLE_BRANCH", //<-- IS IT OK TO USE THIS?
     version: "CIRCLE_BUILD_NUM",
+    repoUrl: "CIRCLE_REPOSITORY_URL"
   },
   NETLIFY: {
     url: "URL",
@@ -76,6 +77,7 @@ module.exports = {
    */
   extractGitHubRepoPath: (url, returnUrl = false) => {
     if (!url) return "undefined_name";
+
     // Let's try to match https based repo url
     let match = url.match(
       /https?:\/\/(www\.)?(github|gitlab).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
@@ -89,8 +91,16 @@ module.exports = {
     );
     if (match && match.groups && match.groups.owner && match.groups.name) 
       return !returnUrl ? `${match.groups.name}` : `https://${match.groups.server}.com/${match.groups.owner}/${match.groups.name}.git`;
+
+    // Now trying to match http based git access
+    // Ref: https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#http-based-git-access-by-an-installation
+    match = url.match(
+      /https?:\/\/x\-access\-token\:(?<token>[\w.-]+)@github.com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
+    );
+    if (match && match.groups && match.groups.owner && match.groups.name) 
+      return !returnUrl ? `${match.groups.name}` : `https://github.com/${match.groups.owner}/${match.groups.name}.git`;
     else 
-      return null; 
+      return null;
   },
 
   /**
@@ -238,23 +248,23 @@ module.exports = {
       .execSync("git rev-parse --abbrev-ref HEAD")
       .toString()
       .trim();
-    let _repository = require("child_process")
-      .execSync("git remote -v")
+    let remoteFromLocalGit = require("child_process")
+      .execSync("git config --get remote.origin.url")
       .toString()
       .trim();
 
-    if ((!_repository || _repository == "") && process.env.VERCEL) {
-      _repository = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`;
+    if ((!remoteFromLocalGit || remoteFromLocalGit == "") && process.env.VERCEL) {
+      remoteFromLocalGit = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`;
     }
 
-    const repository = module.exports.extractGitHubRepoPath(_repository, true);
+    const remoteFromLocalGitRepoUrl = module.exports.extractGitHubRepoPath(_remoteFromLocalGit, true);
 
     return {
       commitId,
       commitMessage,
       commitDate,
       commitBranch,
-      repository,
+      remoteFromLocalGitRepoUrl,
     };
   },
 
@@ -264,7 +274,7 @@ module.exports = {
    * @param {Object} Activity parameters pased from execution call
    */
   buildActivityBody: async (activityParameters) => {
-    const { commitId, commitMessage, commitDate, commitBranch, repository } =
+    const { commitId, commitMessage, commitDate, commitBranch, remoteFromLocalGitRepoUrl } =
       module.exports.resolveLocalGitInformation();
     const runtimeVersion = process.version;
     const {
@@ -280,7 +290,9 @@ module.exports = {
       repoUrl = null,
     } = activityParameters;
 
-    const repoName = module.exports.extractGitHubRepoPath(repository);
+    const repositoryUrl = repoUrl ? repoUrl : remoteFromLocalGitRepoUrl;
+
+    const repoName = module.exports.extractGitHubRepoPath(repositoryUrl);
     const changelog = await module.exports.generateChangelog(
       commitId,
       service ? service : repoName,
@@ -306,7 +318,7 @@ module.exports = {
         ...(serviceType && { serviceType }),
         ...(runtimeVersion && { runtimeVersion }),
         ...(serviceUrl && { serviceUrl }),
-        ...((repository || repoUrl) && { repoUrl: repoUrl ? repoUrl : repository }),
+        ...(repositoryUrl && { repoUrl: repositoryUrl }),
       },
     };
     return activityBody;
