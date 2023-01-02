@@ -257,7 +257,7 @@ module.exports = {
       remoteFromLocalGit = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`;
     }
 
-    const remoteFromLocalGitRepoUrl = module.exports.extractGitHubRepoPath(_remoteFromLocalGit, true);
+    const remoteFromLocalGitRepoUrl = module.exports.extractGitHubRepoPath(remoteFromLocalGit, true);
 
     return {
       commitId,
