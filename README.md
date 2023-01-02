@@ -4,10 +4,30 @@
 Post deploy script for [Kelsus Spot](https://spot.kelsus.com/)
 
 [Spot Repository](https://github.com/Kelsus/deploy-spot-webapp)
-- Once the script is executed, it will send a POST request to the [Spot API](https://github.com/Kelsus/deploy-spot-api)
+- Once the script is executed, it will send a POST request to the [Spot API](https://github.com/Kelsus/spot-api)
 - This request will generate a new service/application with an activity.
 - On the app you will be able to assign the service to a client, and on each deploy it will trigger the script again, generating a new activity.
 - The script supports differents environments for the same app.
+- Support for different CIs
+
+# How to use it
+Set the ***`SPOT_API_KEY`*** environment variable. (Ask Spot team members to provide it).
+
+## Call the service either by
+
+1. Using NPX from a CLI, passing arguments if needed:
+
+```
+npx @kelsus/api-spot-package --service=spot-api
+```
+
+
+2.  Or installing this package on you deployer and then invoking main():
+```
+const SPOT = require('@kelsus/api-spot-package')
+
+SPOT.main(args)
+```
 
 # Execute
 Run the npx command with optional args to execute the post deploy script.
@@ -43,7 +63,7 @@ You can still customize parameters calling them on the npx execution.
 
 e.g: 
 ```
-npx spot-package --service=api-spot-package
+npx @kelsus/api-spot-package --service=api-spot-package
 ```
 ```
 --id
