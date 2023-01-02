@@ -76,18 +76,21 @@ module.exports = {
    */
   extractGitHubRepoPath: (url, returnUrl = false) => {
     if (!url) return "undefined_name";
-    // Trying to match ssh based repo url
+    // Let's try to match https based repo url
     let match = url.match(
-      /git@(github|gitlab).com:(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
+      /https?:\/\/(www\.)?(github|gitlab).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
     );
-    if (!match || !match.groups || !(match.groups.owner && match.groups.name)) {
-      // Let's try to match https based repo url
-      match = url.match(
-        /https?:\/\/(www\.)?(github|gitlab).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
-      );
-      if (!match || !match.groups || !(match.groups.owner && match.groups.name)) return null
-    }
-    return !returnUrl ? `${match.groups.name}` : `${match[0]}`;
+    if (match && match.groups && match.groups.owner && match.groups.name) 
+      return !returnUrl ? `${match.groups.name}` : `${match[0]}`;
+
+    // Now trying to match ssh based repo url
+    match = url.match(
+      /git@(?<server>[\w.-]+).com:(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
+    );
+    if (match && match.groups && match.groups.owner && match.groups.name) 
+      return !returnUrl ? `${match.groups.name}` : `https://${match.groups.server}.com/${match.groups.owner}/${match.groups.name}.git`;
+    else 
+      return null; 
   },
 
   /**
