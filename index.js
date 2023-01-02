@@ -76,6 +76,7 @@ module.exports = {
    */
   extractGitHubRepoPath: (url, returnUrl = false) => {
     if (!url) return "undefined_name";
+
     // Let's try to match https based repo url
     let match = url.match(
       /https?:\/\/(www\.)?(github|gitlab).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
@@ -89,8 +90,16 @@ module.exports = {
     );
     if (match && match.groups && match.groups.owner && match.groups.name) 
       return !returnUrl ? `${match.groups.name}` : `https://${match.groups.server}.com/${match.groups.owner}/${match.groups.name}.git`;
+
+    // Now trying to match http based git access
+    // Ref: https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#http-based-git-access-by-an-installation
+    match = url.match(
+      /https?:\/\/x\-access\-token\:(?<token>[\w.-]+)@github.com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
+    );
+    if (match && match.groups && match.groups.owner && match.groups.name) 
+      return !returnUrl ? `${match.groups.name}` : `https://github.com/${match.groups.owner}/${match.groups.name}.git`;
     else 
-      return null; 
+      return null;
   },
 
   /**
@@ -239,7 +248,7 @@ module.exports = {
       .toString()
       .trim();
     let _repository = require("child_process")
-      .execSync("git remote -v")
+      .execSync("git config --get remote.origin.url")
       .toString()
       .trim();
 
