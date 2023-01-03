@@ -114,7 +114,8 @@ module.exports = {
       try {
         let activityParameters = module.exports.checkForCIDeploy();
 
-        console.log("Trying to resolve version from parent package.json");
+        console.log("Parameters extracted from CI:");
+        console.log(activityParameters);
 
         let packageJson = packageJsonFinder().next();
         let version = packageJson.value.version;
@@ -127,6 +128,9 @@ module.exports = {
         } catch(e) {
           console.log(`Error trying to resolve parent package.json ${e}`)
         }
+
+        console.log("Version extracted from parent package.json:");
+        console.log(version);
 
         activityParameters = {
           ...activityParameters,
@@ -258,6 +262,15 @@ module.exports = {
     }
 
     const remoteFromLocalGitRepoUrl = module.exports.extractGitHubRepoPath(remoteFromLocalGit, true);
+
+    console.log("Parameters extratec from local git:");
+    console.log({
+      commitId,
+      commitMessage,
+      commitDate,
+      commitBranch,
+      remoteFromLocalGitRepoUrl,
+    });
 
     return {
       commitId,
@@ -438,6 +451,11 @@ module.exports = {
       if (process.env.SPOT_API_KEY) {
         const activityParameters =
           module.exports.parseActivityParameters(params);
+
+        console.log("Parameters resolved from CI and paased arguments:");
+        console.log(activityParameters);
+
+        console.log("Notifying deploy spot API");
 
         const activityBody = await module.exports.buildActivityBody(
           activityParameters
