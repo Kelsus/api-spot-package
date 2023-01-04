@@ -67,6 +67,9 @@ jobs:
 
     steps:
       - checkout
+      - run:
+          name: Pulling last commit with version bump
+          command: git pull
       - attach_workspace:
           at: ~/repo
       - run:
