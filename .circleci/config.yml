@@ -25,6 +25,9 @@ jobs:
             npm version patch  -m "Bumped version number to %s [ci skip]"
             git push origin main
             git push --tags
+      - persist_to_workspace:
+          root: ~/repo
+          paths: .
   build:
     docker:
       - image: cimg/node:14.18.1
@@ -66,10 +69,6 @@ jobs:
     working_directory: ~/repo
 
     steps:
-      - checkout
-      - run:
-          name: Pulling last commit with version bump
-          command: git pull
       - attach_workspace:
           at: ~/repo
       - run:
