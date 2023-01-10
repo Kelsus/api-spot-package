@@ -48,6 +48,7 @@ The Spot script takes variables from differents CIs in order to fill the data th
     - service: "CIRCLE_PROJECT_REPONAME",
     - environment: "CIRCLE_BRANCH",
     - version: "CIRCLE_BUILD_NUM",
+    - repoUrl: "CIRCLE_REPOSITORY_URL"
 * Netlify:
     - url: "URL",
     - application: "SITE_NAME",
