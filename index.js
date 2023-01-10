@@ -80,17 +80,17 @@ module.exports = {
 
     // Let's try to match https based repo url
     let match = url.match(
-      /https?:\/\/(www\.)?(github|gitlab).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
+      /https?:\/\/(www\.)?(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
     );
     if (match && match.groups && match.groups.owner && match.groups.name) 
-      return !returnUrl ? `${match.groups.name}` : `${match[0]}`;
+      return returnUrl ? `https://${match.groups.server}.com/${match.groups.owner}/${match.groups.name}` : `${match.groups.name}`;
 
     // Now trying to match ssh based repo url
     match = url.match(
       /git@(?<server>[\w.-]+).com:(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
     );
     if (match && match.groups && match.groups.owner && match.groups.name) 
-      return !returnUrl ? `${match.groups.name}` : `https://${match.groups.server}.com/${match.groups.owner}/${match.groups.name}.git`;
+      return returnUrl ? `https://${match.groups.server}.com/${match.groups.owner}/${match.groups.name}` : `${match.groups.name}`;
 
     // Now trying to match http based git access
     // Ref: https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#http-based-git-access-by-an-installation
@@ -98,7 +98,7 @@ module.exports = {
       /https?:\/\/x\-access\-token\:(?<token>[\w.-]+)@github.com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
     );
     if (match && match.groups && match.groups.owner && match.groups.name) 
-      return !returnUrl ? `${match.groups.name}` : `https://github.com/${match.groups.owner}/${match.groups.name}.git`;
+      return returnUrl ? `https://github.com/${match.groups.owner}/${match.groups.name}` : `${match.groups.name}`;
     else 
       return null;
   },
@@ -263,7 +263,7 @@ module.exports = {
 
     const remoteFromLocalGitRepoUrl = module.exports.extractGitHubRepoPath(remoteFromLocalGit, true);
 
-    console.log("Parameters extratec from local git:");
+    console.log("Parameters extrated from local git:");
     console.log({
       commitId,
       commitMessage,
