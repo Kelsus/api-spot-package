@@ -17,7 +17,7 @@ describe("Test suite: extractGitHubRepoData", () => {
     assert.deepStrictEqual(actualReponse, expectedResponse);
   });
 
-  it('Should get the project name from https://gitlab.com/Kelsus/api-spot-package.git', () => {
+  it('Should get repo name, owner and server from https://gitlab.com/Kelsus/api-spot-package.git', () => {
     const actualReponse = extractGitHubRepoData("https://gitlab.com/Kelsus/api-spot-package.git");
     const expectedResponse = {
       name: 'api-spot-package',
@@ -27,7 +27,7 @@ describe("Test suite: extractGitHubRepoData", () => {
     assert.deepStrictEqual(actualReponse, expectedResponse);
   });
 
-  it('Should get the project name from https://www.github.com/Kelsus/api-spot-package.git', () => {
+  it('Should get repo name, owner and server from https://www.github.com/Kelsus/api-spot-package.git', () => {
     const actualReponse = extractGitHubRepoData("https://www.github.com/Kelsus/api-spot-package.git");
     const expectedResponse = {
       name: 'api-spot-package',
@@ -37,7 +37,7 @@ describe("Test suite: extractGitHubRepoData", () => {
     assert.deepStrictEqual(actualReponse, expectedResponse);
   });
 
-  it('Should get the project name from git@github.com:Kelsus/spot-api.git', () => {
+  it('Should get repo name, owner and server from git@github.com:Kelsus/spot-api.git', () => {
     const actualReponse = extractGitHubRepoData("git@github.com:Kelsus/spot-api.git");
     const expectedResponse = {
       name: 'spot-api',
@@ -47,7 +47,7 @@ describe("Test suite: extractGitHubRepoData", () => {
     assert.deepStrictEqual(actualReponse, expectedResponse);
   });
 
-  it('Should get the project name from git@gitlab.com:Kelsus/spot-api.git', () => {
+  it('Should get repo name, owner and server from git@gitlab.com:Kelsus/spot-api.git', () => {
     const actualReponse = extractGitHubRepoData("git@gitlab.com:Kelsus/spot-api.git");
     const expectedResponse = {
       name: 'spot-api',
@@ -57,7 +57,7 @@ describe("Test suite: extractGitHubRepoData", () => {
     assert.deepStrictEqual(actualReponse, expectedResponse);
   });
 
-  it('Should get the project name from https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api.git', () => {
+  it('Should get repo name, owner and server from https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api.git', () => {
     const actualReponse = extractGitHubRepoData("https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api.git");
     const expectedResponse = {
       name: 'spot-api',
