@@ -83,8 +83,14 @@ module.exports = {
     };
 
     const urlRegularExpressions = {
+      // https based repo url
       'https': /https?:\/\/(www\.)?(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/,
+
+      // ssh based repo url
       'ssh': /git@(?<server>[\w.-]+).com:(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/,
+
+      // x-access-token refeers to http based git access
+      // Ref: https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#http-based-git-access-by-an-installation
       'x-access-token': /https?:\/\/x\-access\-token\:(?<token>[\w.-]+)@(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/,
     };
 
