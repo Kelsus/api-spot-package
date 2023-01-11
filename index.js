@@ -72,35 +72,42 @@ const ACTIVITY_STATUS = "OK";
 const RUNTIME = "NodeJS";
 module.exports = {
   /**
-   * Extracts github repo owner and name.
+   * Extracts github repo owner, name and server.
    * Must be a Github repository: Gitlab, Bitbucket, etc will not work properly
    */
-  extractGitHubRepoPath: (url, returnUrl = false) => {
-    if (!url) return "undefined_name";
+  extractGitHubRepoData: (url) => {
+    if (!url) return {
+      name: "undefined_name",
+      server: "undefined_name",
+      owner: "undefined_owner",
+    };
 
-    // Let's try to match https based repo url
-    let match = url.match(
-      /https?:\/\/(www\.)?(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
-    );
-    if (match && match.groups && match.groups.owner && match.groups.name) 
-      return returnUrl ? `https://${match.groups.server}.com/${match.groups.owner}/${match.groups.name}` : `${match.groups.name}`;
+    const urlRegularExpressions = {
+      'https': /https?:\/\/(www\.)?(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/,
+      'ssh': /git@(?<server>[\w.-]+).com:(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/,
+      'x-access-token': /https?:\/\/x\-access\-token\:(?<token>[\w.-]+)@(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/,
+    };
 
-    // Now trying to match ssh based repo url
-    match = url.match(
-      /git@(?<server>[\w.-]+).com:(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
-    );
-    if (match && match.groups && match.groups.owner && match.groups.name) 
-      return returnUrl ? `https://${match.groups.server}.com/${match.groups.owner}/${match.groups.name}` : `${match.groups.name}`;
+    for (const regularExpression of Object.values(urlRegularExpressions)) {
+      const match = url.match(regularExpression);
+      if (!match || !match.groups) continue;
+      const { name, server, owner } = match.groups;
+      if (!name || !server || !owner) continue;
 
-    // Now trying to match http based git access
-    // Ref: https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#http-based-git-access-by-an-installation
-    match = url.match(
-      /https?:\/\/x\-access\-token\:(?<token>[\w.-]+)@github.com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/
-    );
-    if (match && match.groups && match.groups.owner && match.groups.name) 
-      return returnUrl ? `https://github.com/${match.groups.owner}/${match.groups.name}` : `${match.groups.name}`;
-    else 
-      return null;
+      return { name, server, owner };
+    }
+
+    return null;
+  },
+
+  /**
+   * Format the given url (it can be with ssh or x-access-token format) to classic url like
+   * 'https://${server}.com/${owner}/${name}'
+   */
+  buildGitHubUrl: (url) => {
+    const { server, name, owner } = module.exports.extractGitHubRepoData(url);
+
+    return `https://${server}.com/${owner}/${name}`;
   },
 
   /**
@@ -125,7 +132,7 @@ module.exports = {
             version = packageJson.value.version;
             packageJson = packageJson.next();
           }
-        } catch(e) {
+        } catch (e) {
           console.log(`Error trying to resolve parent package.json ${e}`)
         }
 
@@ -212,8 +219,7 @@ module.exports = {
         : null;
       const changelog = require("child_process")
         .execSync(
-          `git log --pretty=format:"%h %s" ${
-            lastId ? lastId + ".." + currentCommitId : `-n ${LATEST_COMMIT_COUNT}`
+          `git log --pretty=format:"%h %s" ${lastId ? lastId + ".." + currentCommitId : `-n ${LATEST_COMMIT_COUNT}`
           }`
         )
         .toString()
@@ -261,7 +267,7 @@ module.exports = {
       remoteFromLocalGit = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`;
     }
 
-    const remoteFromLocalGitRepoUrl = module.exports.extractGitHubRepoPath(remoteFromLocalGit, true);
+    const remoteFromLocalGitRepoUrl = module.exports.buildGitHubUrl(remoteFromLocalGit);
 
     console.log("Parameters extrated from local git:");
     console.log({
@@ -301,29 +307,35 @@ module.exports = {
       runtime = null,
       eventType = null,
       repoUrl = null,
+      organization = null,
     } = activityParameters;
 
     const repositoryUrl = repoUrl ? repoUrl : remoteFromLocalGitRepoUrl;
+    const {
+      name: repoName,
+      server,
+      owner: repoOrganization
+    } = extractGitHubRepoData(repositoryUrl);
 
-    const repoName = module.exports.extractGitHubRepoPath(repositoryUrl);
     const changelog = await module.exports.generateChangelog(
       commitId,
-      service ? service : repoName,
+      service ?? repoName,
       environment
     );
     const activityBody = {
       activity: {
         id: commitId,
-        service: service ? service : repoName,
+        service: service ?? repoName,
+        organization: organization ?? repoOrganization,
         environment: environment,
         commitId: commitId,
         commitBranch: commitBranch,
         commitDate: commitDate,
         commitMessage: commitMessage,
         createdAt: commitDate,
-        status: status ? status : ACTIVITY_STATUS,
-        runtime: runtime ? runtime : RUNTIME,
-        eventType: eventType ? eventType : EVENT_TYPE,
+        status: status ?? ACTIVITY_STATUS,
+        runtime: runtime ?? RUNTIME,
+        eventType: eventType ??  EVENT_TYPE,
         lastDeploy: commitDate,
         changelog: changelog,
         ...(application && { application }),
@@ -449,10 +461,9 @@ module.exports = {
         "***************************************************************************"
       );
       if (process.env.SPOT_API_KEY) {
-        const activityParameters =
-          module.exports.parseActivityParameters(params);
+        const activityParameters = module.exports.parseActivityParameters(params);
 
-        console.log("Parameters resolved from CI and paased arguments:");
+        console.log("Parameters resolved from CI and passed arguments:");
         console.log(activityParameters);
 
         console.log("Notifying deploy spot API");
