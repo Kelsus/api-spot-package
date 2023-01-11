@@ -16,6 +16,7 @@ const ALLOWED_PARAMETERS = [
   "commitDate",
   "application",
   "service",
+  "organization",
   "status",
   "environment",
   "version",
@@ -319,8 +320,7 @@ module.exports = {
     const repositoryUrl = repoUrl ? repoUrl : remoteFromLocalGitRepoUrl;
     const {
       name: repoName,
-      server,
-      owner: repoOrganization
+      owner: repoOrganization,
     } = extractGitHubRepoData(repositoryUrl);
 
     const changelog = await module.exports.generateChangelog(
