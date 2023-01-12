@@ -79,7 +79,7 @@ module.exports = {
   extractGitHubRepoData: (url) => {
     if (!url) return {
       name: "undefined_name",
-      server: "undefined_name",
+      server: "undefined_server",
       owner: "undefined_owner",
     };
 
@@ -112,6 +112,7 @@ module.exports = {
    * 'https://${server}.com/${owner}/${name}'
    */
   buildGitHubUrl: (url) => {
+    if (!url) return null;
     const { server, name, owner } = module.exports.extractGitHubRepoData(url);
 
     return `https://${server}.com/${owner}/${name}`;
