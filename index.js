@@ -85,14 +85,14 @@ module.exports = {
 
     const urlRegularExpressions = {
       // https based repo url
-      'https': /https?:\/\/(www\.)?(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/,
+      'https': /https?:\/\/(www\.)?(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>(?:[\w.-]+(?=\.git)|(?:[\w.-]+)))/,
 
       // ssh based repo url
-      'ssh': /git@(?<server>[\w.-]+).com:(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/,
+      'ssh': /git@(?<server>[\w.-]+).com:(?<owner>[\w.-]+)\/(?<name>(?:[\w.-]+(?=\.git)|(?:[\w.-]+)))/,
 
       // x-access-token refeers to http based git access
       // Ref: https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#http-based-git-access-by-an-installation
-      'x-access-token': /https?:\/\/x\-access\-token\:(?<token>[\w.-]+)@(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>[\w.-]+)\.git*/,
+      'x-access-token': /https?:\/\/x\-access\-token\:(?<token>[\w.-]+)@(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>(?:[\w.-]+(?=\.git)|(?:[\w.-]+)))/,
     };
 
     for (const regularExpression of Object.values(urlRegularExpressions)) {
@@ -318,30 +318,29 @@ module.exports = {
     } = activityParameters;
 
     const repositoryUrl = repoUrl ? repoUrl : remoteFromLocalGitRepoUrl;
-    const {
-      name: repoName,
-      owner: repoOrganization,
-    } = extractGitHubRepoData(repositoryUrl);
+    const repoData = module.exports.extractGitHubRepoData(repositoryUrl);
+    const repoName = (repoData && repoData.name) ? repoData.name : null;
+    const repoOrganization = (repoData && repoData.owner) ? repoData.owner : null;
 
     const changelog = await module.exports.generateChangelog(
       commitId,
-      service ?? repoName,
+      service ? service : repoName,
       environment
     );
     const activityBody = {
       activity: {
         id: commitId,
-        service: service ?? repoName,
-        organization: organization ?? repoOrganization,
+        service: service ? service : repoName,
+        organization: organization ? organization : repoOrganization,
         environment: environment,
         commitId: commitId,
         commitBranch: commitBranch,
         commitDate: commitDate,
         commitMessage: commitMessage,
         createdAt: commitDate,
-        status: status ?? ACTIVITY_STATUS,
-        runtime: runtime ?? RUNTIME,
-        eventType: eventType ??  EVENT_TYPE,
+        status: status ? status : ACTIVITY_STATUS,
+        runtime: runtime ? runtime : RUNTIME,
+        eventType: eventType ? eventType : EVENT_TYPE,
         lastDeploy: commitDate,
         changelog: changelog,
         ...(application && { application }),

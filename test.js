@@ -66,6 +66,36 @@ describe("Test suite: extractGitHubRepoData", () => {
     };
     assert.deepStrictEqual(actualReponse, expectedResponse);
   });
+
+  it('Should get repo name, owner and server from https://github.com/Kelsus/api-spot-package', () => {
+    const actualReponse = extractGitHubRepoData("https://github.com/Kelsus/api-spot-package");
+    const expectedResponse = {
+      name: 'api-spot-package',
+      owner: 'Kelsus',
+      server: 'github',
+    };
+    assert.deepStrictEqual(actualReponse, expectedResponse);
+  });
+
+  it('Should get repo name, owner and server from git@github.com:Kelsus/spot-api', () => {
+    const actualReponse = extractGitHubRepoData("git@github.com:Kelsus/spot-api");
+    const expectedResponse = {
+      name: 'spot-api',
+      owner: 'Kelsus',
+      server: 'github',
+    };
+    assert.deepStrictEqual(actualReponse, expectedResponse);
+  });
+
+  it('Should get repo name, owner and server from https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api', () => {
+    const actualReponse = extractGitHubRepoData("https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api");
+    const expectedResponse = {
+      name: 'spot-api',
+      owner: 'Kelsus',
+      server: 'github',
+    };
+    assert.deepStrictEqual(actualReponse, expectedResponse);
+  });
 });
 
 describe("Test suite: buildGitHubUrl", () => {
