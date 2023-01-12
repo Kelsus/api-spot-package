@@ -136,7 +136,8 @@ activity:
         serviceUrl,
         repoUrl,
         lastDeploy,
-        changelog
+        changelog,
+        organization,
     }
 ```
 
