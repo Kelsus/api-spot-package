@@ -86,6 +86,7 @@ npx @kelsus/api-spot-package --service=api-spot-package
 --repoUrl
 --lastDeploy
 --changelog
+--organization
 ```
 
 ## Alternative Env Variables
