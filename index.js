@@ -479,6 +479,7 @@ module.exports = {
    * Main functions responsible for performing deploy spot api activity notification
    */
   main: async (params) => {
+    console.log(params);
     const dryRunRequested = module.exports.checkIfDryRunWasRequested(params);
     
     try {

@@ -20,7 +20,7 @@
     "url": "git+https://github.com/Kelsus/api-spot-package.git"
   },
   "scripts": {
-    "test": "node test.js"
+    "test": "node --test"
   },
   "author": "Kelsus",
   "license": "ISC",
