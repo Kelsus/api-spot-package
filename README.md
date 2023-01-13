@@ -10,10 +10,10 @@ Post deploy script for [Kelsus Spot](https://spot.kelsus.com/)
 - The script supports differents environments for the same app.
 - Support for different CIs
 
-# How to use it
+## How to use it
 Set the ***`SPOT_API_KEY`*** environment variable. (Ask Spot team members to provide it).
 
-## Call the service either by
+#### Call the service either by
 
 1. Using NPX from a CLI, passing arguments if needed:
 
@@ -29,7 +29,7 @@ const SPOT = require('@kelsus/api-spot-package')
 SPOT.main(args)
 ```
 
-# Execute
+## Execute
 Run the npx command with optional args to execute the post deploy script.
 ```
 npx @kelsus/api-spot-package
@@ -141,34 +141,17 @@ activity:
     }
 ```
 
-# Environment Variables
-Make sure that SPOT_API_KEY is available on build with a valid value.
-```
-SPOT_API_KEY
-```
-# Push a new version
-- Publishing is automated via CircleCI, so please if you want to add a new version of it, merge it on master branch and change the version.
 
-- After pushing a new version, update the Version History below.
+## Publish a new version
+- Publishing is automated via CircleCI as well as versioning: everytime a commit is merged into `main` branch auto version bump will be executed (patch semver bump).
+
+- After pushing a new version, you can check the changelog on https://spot.kelsus.com/
+
 ## CircleCI Environment Variables
+Circle is used as the Continuous Integration service: Running test, build, publish on npm and notifying to spot: https://app.circleci.com/pipelines/github/Kelsus/api-spot-package
+
 ```
 NPM_TOKEN: NPM personal access token.
 SSH_KEY_FINGERPRINT: fingerprint generated with github ssh deploy key
+SPOT_API_KEY: used to notify spot
 ```
-## Version History
-* 1.0.0
-    * Initial Release
-    * Spot API Key
-    * NPX Executable
-    * NPX Run process arguments
-    * Activity POST - Git repository data
-    * API Key and Parameters fix
-* 1.1.0
-    * Changelog Feature
-* 1.2.0
-    * No parameters required to run
-    * Get data from different CIs
-    * npx @kelsus/api-spot-packge
-* 1.3.0
-    * Node image updated on CircleCI
-    * New API endpoint
