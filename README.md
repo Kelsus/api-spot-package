@@ -21,13 +21,24 @@ Set the ***`SPOT_API_KEY`*** environment variable. (Ask Spot team members to pro
 npx @kelsus/api-spot-package
 ```
 
-
 2.  Or installing this package on you deployer and then invoking main():
 ```
 const SPOT = require('@kelsus/api-spot-package')
 
 SPOT.main(args)
 ```
+
+## Dry run mode
+If you just want to try out the execution safely without making any external calls to SPOT API, you can do it so by simply passing the `--dryRun` flag. You should see logs with `[DRY RUN MODE]` label to confirm that is beign executed in dry run mode.
+For example:
+```
+npx @kelsus/api-spot-package --dryRun
+```
+Or on your local, after cloning this repo, try:
+```
+node ./bin/npx.js --dryRun
+```
+
 
 ## Execute
 Run the npx command with optional args to execute the post deploy script.
