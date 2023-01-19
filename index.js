@@ -397,6 +397,7 @@ module.exports = {
    * @return {Promise} a promise of request
    */
   doRequest: (options, data) => {
+    console.log(`HTTP call fired with options: ${options}`);
     try {
       return new Promise((resolve, reject) => {
         const req = https.request(options, (res) => {
