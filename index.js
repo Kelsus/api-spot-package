@@ -6,6 +6,8 @@ const packageJsonFinder = require('./find-package-json');
 const DEPLOY_SPOT_API_URL = "zwdknc0wz3.execute-api.us-east-1.amazonaws.com";
 const DEPLOY_SPOT_API_PATH = "/activity";
 const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment"];
+// Out of ALLOWED_PARAMETERS since it is an special one
+const DRY_RUN_PARAMETER = "dryRun"
 const ALLOWED_PARAMETERS = [
   "id",
   "eventType",
@@ -209,13 +211,19 @@ module.exports = {
     }
   },
 
-  generateChangelog: async (currentCommitId, service, environment) => {
+  generateChangelog: async (currentCommitId, service, environment, dryRunRequested) => {
     const LATEST_COMMIT_COUNT = 20;
     try {
-      const lastActivity = await module.exports.getLastActivityId(
-        service,
-        environment
-      );
+      let lastActivity;
+      if (!dryRunRequested) {
+        lastActivity = await module.exports.getLastActivityId(
+          service,
+          environment
+        );
+      } else {
+        console.log(`[DRY RUN MODE]: No last activity (commit) will be requested. Generating changelog with last ${LATEST_COMMIT_COUNT} commits`);
+      }
+
       let lastActivityJSON;
       try {
         lastActivityJSON = JSON.parse(lastActivity);
@@ -299,8 +307,9 @@ module.exports = {
    * Builder for data to be sent as a body on the activity notification
    *
    * @param {Object} Activity parameters pased from execution call
+   * @param {Boolean} dryRunRequested parameters pased to simulate execution and avoid request last commit on spot
    */
-  buildActivityBody: async (activityParameters) => {
+  buildActivityBody: async (activityParameters, dryRunRequested) => {
     const { commitId, commitMessage, commitDate, commitBranch, remoteFromLocalGitRepoUrl } =
       module.exports.resolveLocalGitInformation();
     const runtimeVersion = process.version;
@@ -326,7 +335,8 @@ module.exports = {
     const changelog = await module.exports.generateChangelog(
       commitId,
       service ? service : repoName,
-      environment
+      environment,
+      dryRunRequested
     );
     const activityBody = {
       activity: {
@@ -387,6 +397,7 @@ module.exports = {
    * @return {Promise} a promise of request
    */
   doRequest: (options, data) => {
+    console.log(`HTTP call fired with options: ${options}`);
     try {
       return new Promise((resolve, reject) => {
         const req = https.request(options, (res) => {
@@ -455,9 +466,23 @@ module.exports = {
   },
 
   /**
+   * Utility function to determine if a dry run was requested by passing a parameter.
+   * Will be truthy for all cases where parameter --dryRun was passed, no matter the suffix.
+   * For example, will be true for: --dryRun; --dryRun=true; --dryRun=whatever; --dryRun=
+   */
+  checkIfDryRunWasRequested: (params) => {
+    return params
+      .filter((param) => param.indexOf("--") !== -1)
+      .some((param) => param.split("=")[0].slice(2) === DRY_RUN_PARAMETER);
+  },
+
+  /**
    * Main functions responsible for performing deploy spot api activity notification
    */
   main: async (params) => {
+    console.log(params);
+    const dryRunRequested = module.exports.checkIfDryRunWasRequested(params);
+    
     try {
       console.log(
         "***************************************************************************"
@@ -466,7 +491,10 @@ module.exports = {
       console.log(
         "***************************************************************************"
       );
-      if (process.env.SPOT_API_KEY) {
+      
+      if (dryRunRequested) console.log("[DRY RUN MODE]: Dry run requested (No API call will be executed).");
+      
+      if (process.env.SPOT_API_KEY || dryRunRequested) {
         const activityParameters = module.exports.parseActivityParameters(params);
 
         console.log("Parameters resolved from CI and passed arguments:");
@@ -475,7 +503,8 @@ module.exports = {
         console.log("Notifying deploy spot API");
 
         const activityBody = await module.exports.buildActivityBody(
-          activityParameters
+          activityParameters,
+          dryRunRequested
         );
 
         const notFoundParameters = MINIMUM_REQUIRED_PARAMETERS.filter(
@@ -498,28 +527,35 @@ module.exports = {
 
         const activity = JSON.stringify(activityBody);
 
-        const options = module.exports.buildPOSTRequestOptions(
-          apiURL,
-          DEPLOY_SPOT_API_PATH,
-          activity.length
-        );
+        if (!dryRunRequested) {
+          const options = module.exports.buildPOSTRequestOptions(
+            apiURL,
+            DEPLOY_SPOT_API_PATH,
+            activity.length
+          );
 
-        let errorOnNotification;
-        const activityNotificationResult = await module.exports
-          .doRequest(options, activity)
-          .catch((error) => {
-            errorOnNotification = error;
-          });
-        if (!errorOnNotification) {
-          console.log(`Request successful: ${activityNotificationResult}`);
-          console.log(`Notification successful for activity: ${activity}`);
+          let errorOnNotification;
+
+          const activityNotificationResult = await module.exports
+            .doRequest(options, activity)
+            .catch((error) => {
+              errorOnNotification = error;
+            });
+
+            if (!errorOnNotification) {
+              console.log(`Request successful: ${activityNotificationResult}`);
+              console.log(`Notification successful for activity: ${activity}`);
+            } else {
+              console.log(`Notification failed for activity: ${activity}`);
+              console.log(`Request status: ${activityNotificationResult}`);
+              console.log(`${errorOnNotification}`);
+            }
         } else {
-          console.log(`Notification failed for activity: ${activity}`);
-          console.log(`Request status: ${activityNotificationResult}`);
-          console.log(`${errorOnNotification}`);
+          console.log(`[DRY RUN MODE]: Execution finished for activity: ${activity}`);
         }
+        
       } else {
-        console.log("SPOT_API_KEY Environment variable  not found.");
+        console.log("SPOT_API_KEY Environment variable not found.");
       }
     } catch (error) {
       console.log(error);
