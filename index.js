@@ -274,10 +274,20 @@ module.exports = {
       .execSync("git rev-parse --abbrev-ref HEAD")
       .toString()
       .trim();
-    let remoteFromLocalGit = require("child_process")
-      .execSync("git config --get remote.origin.url")
-      .toString()
-      .trim();
+
+    let remoteFromLocalGit;
+    try {
+      remoteFromLocalGit = require("child_process")
+        .execSync("git config --get remote.origin.url")
+        .toString()
+        .trim();
+    } catch (e) {
+      console.log(`Could not call 'git config --get remote.origin.url' trying with 'git ls-remote --get-url'`)
+      remoteFromLocalGit = require("child_process")
+        .execSync("git ls-remote --get-url")
+        .toString()
+        .trim();
+    }
 
     if ((!remoteFromLocalGit || remoteFromLocalGit == "") && process.env.VERCEL) {
       remoteFromLocalGit = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`;
