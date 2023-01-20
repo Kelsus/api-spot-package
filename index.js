@@ -281,12 +281,16 @@ module.exports = {
         .execSync("git config --get remote.origin.url")
         .toString()
         .trim();
-    } catch (e) {
-      console.log(`Could not call 'git config --get remote.origin.url' trying with 'git ls-remote --get-url'`)
-      remoteFromLocalGit = require("child_process")
-        .execSync("git ls-remote --get-url")
-        .toString()
-        .trim();
+    } catch {
+      console.log(`Could not call 'git config --get remote.origin.url' trying with 'git remote get-url origin'`)
+      try {
+        remoteFromLocalGit = require("child_process")
+          .execSync("git remote get-url origin")
+          .toString()
+          .trim();
+      } catch {
+        console.log('Git URL could not be extrated');
+      }
     }
 
     if ((!remoteFromLocalGit || remoteFromLocalGit == "") && process.env.VERCEL) {
