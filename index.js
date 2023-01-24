@@ -238,8 +238,8 @@ module.exports = {
       organization = null,
     } = activityParameters;
 
-    const repositoryUrl = repoUrl ? repoUrl : context.remoteFromLocalGitRepoUrl;
-    const repoData = !context.repoData ? extractGitHubRepoData(repositoryUrl) : context.repoData;
+    const repositoryUrl = repoUrl ? repoUrl : context.resolvedRemoteGitURl;
+    const repoData = context.repoData;
     const repoName = (repoData && repoData.name) ? repoData.name : null;
     const repoOrganization = (repoData && repoData.owner) ? repoData.owner : null;
 
@@ -380,6 +380,10 @@ module.exports = {
    * Main functions responsible for performing deploy spot api activity notification
    */
   main: async (params) => {
+    console.log("***************************************************************************");
+    console.log("Notifying deploy spot API");
+    console.log("***************************************************************************");
+
     console.log(process.env);
     console.log(params);
     
@@ -387,28 +391,23 @@ module.exports = {
       dryRunParameter: DRY_RUN_PARAMETER
     }
 
-    context.dryRunRequested = checkIfDryRunWasRequested(context, params); 
+    context.dryRunRequested = checkIfDryRunWasRequested(context, params);
+
+    if (context.dryRunRequested) console.log("[DRY RUN MODE]: Dry run requested (No API call will be executed).");
     
     try {
-      console.log("***************************************************************************");
-      console.log("Notifying deploy spot API");
-      console.log("***************************************************************************");
-      
-      if (context.dryRunRequested) console.log("[DRY RUN MODE]: Dry run requested (No API call will be executed).");
-      
       if (process.env.SPOT_API_KEY || context.dryRunRequested) {
         const activityParameters = module.exports.parseActivityParameters(params);
 
         console.log("Parameters resolved from CI and passed arguments:");
         console.log(activityParameters);
 
-        console.log("Notifying deploy spot API");
-
         context.localGitInformation = resolveLocalGitInformation();
-        
-        if (context.localGitInformation) {
-          context.repoData = extractGitHubRepoData(context.localGitInformation.remoteFromLocalGit);
-          context.remoteFromLocalGitRepoUrl = buildGitHubUrl(context);
+
+        context.repoData = extractGitHubRepoData(context);
+
+        if (!context.activityParameters || !context.activityParameters.repoUrl) {
+          context.resolvedRemoteGitURl = buildGitHubUrl(context);
         }
 
         const activityBody = await module.exports.buildActivityBody(

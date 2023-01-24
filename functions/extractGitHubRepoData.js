@@ -2,7 +2,15 @@
    * Extracts github repo owner, name and server.
    * Must be a Github repository: Gitlab, Bitbucket, etc will not work properly
    */
-const extractGitHubRepoData = (url) => {
+const extractGitHubRepoData = (context) => {
+  let url;
+
+  if (context.activityParameters && context.activityParameters.repoUrl) {
+    url = context.activityParameters.repoUrl;
+  } else if (context.localGitInformation) {
+    url = context.localGitInformation.remoteFromLocalGit
+  }
+
   if (!url) return {
     name: "undefined_name",
     server: "undefined_server",
