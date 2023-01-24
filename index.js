@@ -1,13 +1,14 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 const https = require("https");
 
-const packageJsonFinder = require('./find-package-json');
+const checkIfDryRunWasRequested = require('./functions/checkIfDryRunWasRequested').default;
+const packageJsonFinder         = require('./functions/findPackageJson');
 
 const DEPLOY_SPOT_API_URL = "zwdknc0wz3.execute-api.us-east-1.amazonaws.com";
 const DEPLOY_SPOT_API_PATH = "/activity";
 const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment"];
 // Out of ALLOWED_PARAMETERS since it is an special one
-const DRY_RUN_PARAMETER = "dryRun"
+const DRY_RUN_PARAMETER = "dryRun";
 const ALLOWED_PARAMETERS = [
   "id",
   "eventType",
@@ -480,22 +481,16 @@ module.exports = {
   },
 
   /**
-   * Utility function to determine if a dry run was requested by passing a parameter.
-   * Will be truthy for all cases where parameter --dryRun was passed, no matter the suffix.
-   * For example, will be true for: --dryRun; --dryRun=true; --dryRun=whatever; --dryRun=
-   */
-  checkIfDryRunWasRequested: (params) => {
-    return params
-      .filter((param) => param.indexOf("--") !== -1)
-      .some((param) => param.split("=")[0].slice(2) === DRY_RUN_PARAMETER);
-  },
-
-  /**
    * Main functions responsible for performing deploy spot api activity notification
    */
   main: async (params) => {
     console.log(params);
-    const dryRunRequested = module.exports.checkIfDryRunWasRequested(params);
+    
+    let context = {
+      dryRunParameter: DRY_RUN_PARAMETER
+    }
+
+    const dryRunRequested = checkIfDryRunWasRequested(context, params);
     
     try {
       console.log(
