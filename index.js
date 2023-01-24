@@ -212,11 +212,11 @@ module.exports = {
     }
   },
 
-  generateChangelog: async (currentCommitId, service, environment, dryRunRequested) => {
+  generateChangelog: async (context, currentCommitId, service, environment) => {
     const LATEST_COMMIT_COUNT = 20;
     try {
       let lastActivity;
-      if (!dryRunRequested) {
+      if (!context.dryRunRequested) {
         lastActivity = await module.exports.getLastActivityId(
           service,
           environment
@@ -321,10 +321,10 @@ module.exports = {
   /**
    * Builder for data to be sent as a body on the activity notification
    *
+   * @param {Object} context Object containing execution details
    * @param {Object} Activity parameters pased from execution call
-   * @param {Boolean} dryRunRequested parameters pased to simulate execution and avoid request last commit on spot
    */
-  buildActivityBody: async (activityParameters, dryRunRequested) => {
+  buildActivityBody: async (context, activityParameters) => {
     const { commitId, commitMessage, commitDate, commitBranch, remoteFromLocalGitRepoUrl } =
       module.exports.resolveLocalGitInformation();
     const runtimeVersion = process.version;
@@ -348,10 +348,10 @@ module.exports = {
     const repoOrganization = (repoData && repoData.owner) ? repoData.owner : null;
 
     const changelog = await module.exports.generateChangelog(
+      context,
       commitId,
       service ? service : repoName,
-      environment,
-      dryRunRequested
+      environment
     );
     const activityBody = {
       activity: {
@@ -490,7 +490,7 @@ module.exports = {
       dryRunParameter: DRY_RUN_PARAMETER
     }
 
-    const dryRunRequested = checkIfDryRunWasRequested(context, params);
+    context.dryRunRequested = checkIfDryRunWasRequested(context, params); 
     
     try {
       console.log(
@@ -501,9 +501,9 @@ module.exports = {
         "***************************************************************************"
       );
       
-      if (dryRunRequested) console.log("[DRY RUN MODE]: Dry run requested (No API call will be executed).");
+      if (context.dryRunRequested) console.log("[DRY RUN MODE]: Dry run requested (No API call will be executed).");
       
-      if (process.env.SPOT_API_KEY || dryRunRequested) {
+      if (process.env.SPOT_API_KEY || context.dryRunRequested) {
         const activityParameters = module.exports.parseActivityParameters(params);
 
         console.log("Parameters resolved from CI and passed arguments:");
@@ -512,8 +512,8 @@ module.exports = {
         console.log("Notifying deploy spot API");
 
         const activityBody = await module.exports.buildActivityBody(
-          activityParameters,
-          dryRunRequested
+          context,
+          activityParameters
         );
 
         const notFoundParameters = MINIMUM_REQUIRED_PARAMETERS.filter(
@@ -536,7 +536,7 @@ module.exports = {
 
         const activity = JSON.stringify(activityBody);
 
-        if (!dryRunRequested) {
+        if (!context.dryRunRequested) {
           const options = module.exports.buildPOSTRequestOptions(
             apiURL,
             DEPLOY_SPOT_API_PATH,
