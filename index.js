@@ -144,7 +144,7 @@ module.exports = {
             packageJson = packageJson.next();
           }
         } catch (e) {
-          console.log(`Error trying to resolve parent package.json ${e}`)
+          console.log('Finished looking up for package.json up in directories hierarchy');
         }
 
         console.log("Version extracted from parent package.json:");
