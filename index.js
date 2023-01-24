@@ -1,8 +1,11 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 const https = require("https");
 
-const checkIfDryRunWasRequested = require('./functions/checkIfDryRunWasRequested').default;
-const packageJsonFinder         = require('./functions/findPackageJson');
+const buildGitHubUrl             = require('./functions/buildGitHubUrl').default;
+const checkIfDryRunWasRequested  = require('./functions/checkIfDryRunWasRequested').default;
+const extractGitHubRepoData      = require('./functions/extractGitHubRepoData').default;
+const resolveLocalGitInformation = require('./functions/resolveLocalGitInformation').default;
+const packageJsonFinder          = require('./functions/findPackageJson');
 
 const DEPLOY_SPOT_API_URL = "zwdknc0wz3.execute-api.us-east-1.amazonaws.com";
 const DEPLOY_SPOT_API_PATH = "/activity";
@@ -75,52 +78,6 @@ const EVENT_TYPE = "COMMIT";
 const ACTIVITY_STATUS = "OK";
 const RUNTIME = "NodeJS";
 module.exports = {
-  /**
-   * Extracts github repo owner, name and server.
-   * Must be a Github repository: Gitlab, Bitbucket, etc will not work properly
-   */
-  extractGitHubRepoData: (url) => {
-    if (!url) return {
-      name: "undefined_name",
-      server: "undefined_server",
-      owner: "undefined_owner",
-    };
-
-    const urlRegularExpressions = {
-      // https based repo url
-      'https': /https?:\/\/(www\.)?(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>(?:[\w.-]+(?=\.git)|(?:[\w.-]+)))/,
-
-      // ssh based repo url
-      'ssh': /git@(?<server>[\w.-]+).com:(?<owner>[\w.-]+)\/(?<name>(?:[\w.-]+(?=\.git)|(?:[\w.-]+)))/,
-
-      // x-access-token refeers to http based git access
-      // Ref: https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#http-based-git-access-by-an-installation
-      'x-access-token': /https?:\/\/x\-access\-token\:(?<token>[\w.-]+)@(?<server>[\w.-]+).com\/(?<owner>[\w.-]+)\/(?<name>(?:[\w.-]+(?=\.git)|(?:[\w.-]+)))/,
-    };
-
-    for (const regularExpression of Object.values(urlRegularExpressions)) {
-      const match = url.match(regularExpression);
-      if (!match || !match.groups) continue;
-      const { name, server, owner } = match.groups;
-      if (!name || !server || !owner) continue;
-
-      return { name, server, owner };
-    }
-
-    return null;
-  },
-
-  /**
-   * Format the given url (it can be with ssh or x-access-token format) to classic url like
-   * 'https://${server}.com/${owner}/${name}'
-   */
-  buildGitHubUrl: (url) => {
-    if (!url) return null;
-    const { server, name, owner } = module.exports.extractGitHubRepoData(url);
-
-    return `https://${server}.com/${owner}/${name}`;
-  },
-
   /**
    * Read activity parameters in the shape of --param=value from script invocation
    * Includes only parameters with key within MINIMUM_REQUIRED_PARAMETERS list
@@ -257,67 +214,6 @@ module.exports = {
     }
   },
 
-  resolveLocalGitInformation: () => {
-    console.log("--Getting git repo info");
-    const commitId = require("child_process")
-      .execSync("git rev-parse HEAD")
-      .toString()
-      .trim();
-    const commitMessage = require("child_process")
-      .execSync("git show -s --format=%s")
-      .toString()
-      .trim();
-    const commitDate = require("child_process")
-      .execSync("git show -s --format=%cd --date=iso")
-      .toString()
-      .trim();
-    const commitBranch = require("child_process")
-      .execSync("git rev-parse --abbrev-ref HEAD")
-      .toString()
-      .trim();
-
-    let remoteFromLocalGit;
-    try {
-      remoteFromLocalGit = require("child_process")
-        .execSync("git config --get remote.origin.url")
-        .toString()
-        .trim();
-    } catch {
-      console.log(`Could not call 'git config --get remote.origin.url' trying with 'git remote get-url origin'`)
-      try {
-        remoteFromLocalGit = require("child_process")
-          .execSync("git remote get-url origin")
-          .toString()
-          .trim();
-      } catch {
-        console.log('Git URL could not be extrated');
-      }
-    }
-
-    if ((!remoteFromLocalGit || remoteFromLocalGit == "") && process.env.VERCEL) {
-      remoteFromLocalGit = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`;
-    }
-
-    const remoteFromLocalGitRepoUrl = module.exports.buildGitHubUrl(remoteFromLocalGit);
-
-    console.log("Parameters extrated from local git:");
-    console.log({
-      commitId,
-      commitMessage,
-      commitDate,
-      commitBranch,
-      remoteFromLocalGitRepoUrl,
-    });
-
-    return {
-      commitId,
-      commitMessage,
-      commitDate,
-      commitBranch,
-      remoteFromLocalGitRepoUrl,
-    };
-  },
-
   /**
    * Builder for data to be sent as a body on the activity notification
    *
@@ -325,8 +221,8 @@ module.exports = {
    * @param {Object} Activity parameters pased from execution call
    */
   buildActivityBody: async (context, activityParameters) => {
-    const { commitId, commitMessage, commitDate, commitBranch, remoteFromLocalGitRepoUrl } =
-      module.exports.resolveLocalGitInformation();
+    const { commitId, commitMessage, commitDate, commitBranch } = context.localGitInformation;
+
     const runtimeVersion = process.version;
     const {
       environment,
@@ -342,8 +238,8 @@ module.exports = {
       organization = null,
     } = activityParameters;
 
-    const repositoryUrl = repoUrl ? repoUrl : remoteFromLocalGitRepoUrl;
-    const repoData = module.exports.extractGitHubRepoData(repositoryUrl);
+    const repositoryUrl = repoUrl ? repoUrl : context.remoteFromLocalGitRepoUrl;
+    const repoData = !context.repoData ? extractGitHubRepoData(repositoryUrl) : context.repoData;
     const repoName = (repoData && repoData.name) ? repoData.name : null;
     const repoOrganization = (repoData && repoData.owner) ? repoData.owner : null;
 
@@ -484,6 +380,7 @@ module.exports = {
    * Main functions responsible for performing deploy spot api activity notification
    */
   main: async (params) => {
+    console.log(process.env);
     console.log(params);
     
     let context = {
@@ -493,13 +390,9 @@ module.exports = {
     context.dryRunRequested = checkIfDryRunWasRequested(context, params); 
     
     try {
-      console.log(
-        "***************************************************************************"
-      );
+      console.log("***************************************************************************");
       console.log("Notifying deploy spot API");
-      console.log(
-        "***************************************************************************"
-      );
+      console.log("***************************************************************************");
       
       if (context.dryRunRequested) console.log("[DRY RUN MODE]: Dry run requested (No API call will be executed).");
       
@@ -511,6 +404,13 @@ module.exports = {
 
         console.log("Notifying deploy spot API");
 
+        context.localGitInformation = resolveLocalGitInformation();
+        
+        if (context.localGitInformation) {
+          context.repoData = extractGitHubRepoData(context.localGitInformation.remoteFromLocalGit);
+          context.remoteFromLocalGitRepoUrl = buildGitHubUrl(context);
+        }
+
         const activityBody = await module.exports.buildActivityBody(
           context,
           activityParameters
@@ -521,9 +421,7 @@ module.exports = {
         );
 
         if (notFoundParameters && notFoundParameters.length > 0) {
-          console.log(
-            "Notification not sent. Some activity parameters are missing"
-          );
+          console.log("Notification not sent. Some activity parameters are missing");
           console.log(`Parameters missing: ${notFoundParameters}`);
           process.exit(9);
         }

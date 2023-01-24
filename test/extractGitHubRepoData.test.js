@@ -1,7 +1,7 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert");
 
-const { extractGitHubRepoData } = require("../index.js");
+const extractGitHubRepoData = require('../functions/extractGitHubRepoData').default;
 
 describe("Test suite: extractGitHubRepoData", () => {
   it('Should get repo name, owner and server from https://github.com/Kelsus/api-spot-package.git', () => {
