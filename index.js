@@ -1,9 +1,8 @@
-/* eslint @typescript-eslint/no-var-requires: "off" */
-const https = require("https");
-
 const buildGitHubUrl             = require('./functions/buildGitHubUrl').default;
 const checkIfDryRunWasRequested  = require('./functions/checkIfDryRunWasRequested').default;
+const doRequest                  = require('./functions/doRequest').default;
 const extractGitHubRepoData      = require('./functions/extractGitHubRepoData').default;
+const generateChangelog          = require('./functions/generateChangelog').default;
 const resolveLocalGitInformation = require('./functions/resolveLocalGitInformation').default;
 const packageJsonFinder          = require('./functions/findPackageJson');
 
@@ -148,73 +147,6 @@ module.exports = {
   },
 
   /**
-   * Responsible for obtaining git information from the local directory using basic git actions
-   */
-  getLastActivityId: async (service, environment) => {
-    try {
-      const options = {
-        hostname: DEPLOY_SPOT_API_URL,
-        port: 443,
-        path: `/services/${service}/environments/${environment}/last`,
-        headers: {
-          "X-Api-Key": process.env.SPOT_API_KEY,
-        },
-        method: "GET",
-      };
-      const req = await module.exports.doRequest(options, "");
-      return req;
-    } catch (error) {
-      console.log("--Cannot get last activity");
-      console.log(error);
-    }
-  },
-
-  generateChangelog: async (context, currentCommitId, service, environment) => {
-    const LATEST_COMMIT_COUNT = 20;
-    try {
-      let lastActivity;
-      if (!context.dryRunRequested) {
-        lastActivity = await module.exports.getLastActivityId(
-          service,
-          environment
-        );
-      } else {
-        console.log(`[DRY RUN MODE]: No last activity (commit) will be requested. Generating changelog with last ${LATEST_COMMIT_COUNT} commits`);
-      }
-
-      let lastActivityJSON;
-      try {
-        lastActivityJSON = JSON.parse(lastActivity);
-      } catch (e) {
-        lastActivityJSON = null;
-      }
-      const lastId = lastActivityJSON && lastActivityJSON.response
-        ? lastActivityJSON.response.commitId
-        : null;
-      const changelog = require("child_process")
-        .execSync(
-          `git log --pretty=format:"%h %s" ${lastId ? lastId + ".." + currentCommitId : `-n ${LATEST_COMMIT_COUNT}`
-          }`
-        )
-        .toString()
-        .trim()
-        .split(/\r?\n/);
-
-      if (!lastId && changelog.length > 15) {
-        changelog.slice(0, 15);
-        changelog.push("...");
-      } else if (changelog.length == 1 && changelog[0] === "") {
-        return [];
-      }
-      console.log("--Changelog generated: ", changelog);
-      return changelog;
-    } catch (error) {
-      console.log("--Cannot generate changelog");
-      console.log(error);
-    }
-  },
-
-  /**
    * Builder for data to be sent as a body on the activity notification
    *
    * @param {Object} context Object containing execution details
@@ -243,12 +175,8 @@ module.exports = {
     const repoName = (repoData && repoData.name) ? repoData.name : null;
     const repoOrganization = (repoData && repoData.owner) ? repoData.owner : null;
 
-    const changelog = await module.exports.generateChangelog(
-      context,
-      commitId,
-      service ? service : repoName,
-      environment
-    );
+    const changelog = context.changelog;
+
     const activityBody = {
       activity: {
         id: commitId,
@@ -298,43 +226,6 @@ module.exports = {
       },
     };
     return options;
-  },
-  /**
-   * Do a request with options provided.
-   *
-   * @param {Object} options
-   * @param {Object} data
-   *
-   * @return {Promise} a promise of request
-   */
-  doRequest: (options, data) => {
-    console.log(`HTTP call fired with options: ${JSON.stringify(options)}`);
-    try {
-      return new Promise((resolve, reject) => {
-        const req = https.request(options, (res) => {
-          res.setEncoding("utf8");
-          let responseBody = "";
-
-          res.on("data", (chunk) => {
-            responseBody += chunk;
-          });
-
-          res.on("end", () => {
-            resolve(responseBody);
-          });
-        });
-
-        req.on("error", (err) => {
-          reject(err);
-        });
-
-        req.write(data);
-        req.end();
-      });
-    } catch (error) {
-      console.log("-- Cannot do a request");
-      console.log(error);
-    }
   },
 
   checkForCIDeploy: () => {
@@ -388,7 +279,8 @@ module.exports = {
     console.log(params);
     
     let context = {
-      dryRunParameter: DRY_RUN_PARAMETER
+      dryRunParameter: DRY_RUN_PARAMETER,
+      deploySpotAPIUrl: DEPLOY_SPOT_API_URL
     }
 
     context.dryRunRequested = checkIfDryRunWasRequested(context, params);
@@ -410,6 +302,8 @@ module.exports = {
           context.resolvedRemoteGitURl = buildGitHubUrl(context);
         }
 
+        context.changelog = await generateChangelog(context);
+
         const activityBody = await module.exports.buildActivityBody(
           context,
           activityParameters
@@ -427,7 +321,7 @@ module.exports = {
 
         let apiURL = activityParameters.testURL
           ? activityParameters.testURL
-          : DEPLOY_SPOT_API_URL;
+          : context.deploySpotAPIUrl;
 
         console.log(`Sending HTTP POST to ${apiURL}`);
 
@@ -442,8 +336,7 @@ module.exports = {
 
           let errorOnNotification;
 
-          const activityNotificationResult = await module.exports
-            .doRequest(options, activity)
+          const activityNotificationResult = await doRequest(options, activity)
             .catch((error) => {
               errorOnNotification = error;
             });
