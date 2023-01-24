@@ -1,10 +1,11 @@
-const buildGitHubUrl             = require('./functions/buildGitHubUrl').default;
-const checkIfDryRunWasRequested  = require('./functions/checkIfDryRunWasRequested').default;
-const doRequest                  = require('./functions/doRequest').default;
-const extractGitHubRepoData      = require('./functions/extractGitHubRepoData').default;
-const generateChangelog          = require('./functions/generateChangelog').default;
-const resolveLocalGitInformation = require('./functions/resolveLocalGitInformation').default;
-const packageJsonFinder          = require('./functions/findPackageJson');
+const buildGitHubUrl              = require('./functions/buildGitHubUrl').default;
+const checkIfDryRunWasRequested   = require('./functions/checkIfDryRunWasRequested').default;
+const doRequest                   = require('./functions/doRequest').default;
+const extractGitHubRepoData       = require('./functions/extractGitHubRepoData').default;
+const generateChangelog           = require('./functions/generateChangelog').default;
+const getActivityPropertiesFromCI = require('./functions/getActivityPropertiesFromCI').default;
+const getVersionFromPackage       = require('./functions/getVersionFromPackage').default;
+const resolveLocalGitInformation  = require('./functions/resolveLocalGitInformation').default;
 
 const DEPLOY_SPOT_API_URL = "zwdknc0wz3.execute-api.us-east-1.amazonaws.com";
 const DEPLOY_SPOT_API_PATH = "/activity";
@@ -44,35 +45,6 @@ const ALTERNATIVE_ENV_VARIABLES = {
   url: "APP_URL",
 };
 
-const CI_DEPLOY_OPTIONS = {
-  SEED_BUILD_ID: {
-    service: "SEED_APP_NAME",
-    environment: "SEED_STAGE_NAME",
-    version: "SEED_BUILD_ID",
-  },
-  CIRCLECI: {
-    service: "CIRCLE_PROJECT_REPONAME",
-    environment: "CIRCLE_BRANCH", //<-- IS IT OK TO USE THIS?
-    version: "CIRCLE_BUILD_NUM",
-    repoUrl: "CIRCLE_REPOSITORY_URL"
-  },
-  NETLIFY: {
-    url: "URL",
-    application: "SITE_NAME",
-    environment: "CONTEXT",
-    version: "BUILD_ID",
-  },
-  AWS_JOB_ID: {
-    environment: "AWS_BRANCH", //<-- IS IT OK TO USE THIS?
-    version: "AWS_JOB_ID",
-  },
-  VERCEL: {
-    environment: "VERCEL_ENV",
-    url: "VERCEL_URL",
-    service: "VERCEL_GIT_REPO_SLUG",
-  },
-};
-
 const EVENT_TYPE = "COMMIT";
 const ACTIVITY_STATUS = "OK";
 const RUNTIME = "NodeJS";
@@ -81,34 +53,15 @@ module.exports = {
    * Read activity parameters in the shape of --param=value from script invocation
    * Includes only parameters with key within MINIMUM_REQUIRED_PARAMETERS list
    */
-  parseActivityParameters: (params) => {
+  parseActivityParameters: (params, actitivyProperties) => {
     if (typeof params === "object" && !Array.isArray(params)) {
       return params;
     } else {
       try {
-        let activityParameters = module.exports.checkForCIDeploy();
-
-        console.log("Parameters extracted from CI:");
-        console.log(activityParameters);
-
-        let packageJson = packageJsonFinder().next();
-        let version = packageJson.value.version;
-
-        try {
-          while (packageJson && !packageJson.done) {
-            version = packageJson.value.version;
-            packageJson = packageJson.next();
-          }
-        } catch (e) {
-          console.log('Finished looking up for package.json up in directories hierarchy');
-        }
-
-        console.log("Version extracted from parent package.json:");
-        console.log(version);
+        let activityParameters = actitivyProperties;
 
         activityParameters = {
           ...activityParameters,
-          ...(version && { version }),
           ...module.exports.getVariablesFromEnv(),
         };
 
@@ -157,7 +110,7 @@ module.exports = {
 
     const runtimeVersion = process.version;
     const {
-      environment,
+      environment = null,
       service = null,
       application = null,
       serviceType = null,
@@ -228,28 +181,6 @@ module.exports = {
     return options;
   },
 
-  checkForCIDeploy: () => {
-    const variablesFromCI = {};
-    const deployOptionVars = Object.keys(CI_DEPLOY_OPTIONS);
-    const usedCI = deployOptionVars.find((key) => key in process.env);
-
-    if (usedCI) {
-      const CIVars = Object.values(CI_DEPLOY_OPTIONS[usedCI]);
-      console.log("-- Found a CI env variable --");
-      console.log(`Checking for CI variables: ${CIVars}`);
-
-      for (const [envVar, envVarValue] of Object.entries(
-        CI_DEPLOY_OPTIONS[usedCI]
-      )) {
-        if (process.env[envVarValue]) {
-          console.log(`Found variable: ${envVarValue}`);
-          variablesFromCI[envVar] = process.env[envVarValue];
-        }
-      }
-    }
-    return variablesFromCI;
-  },
-
   getVariablesFromEnv: () => {
     const altEnvVars = Object.values(ALTERNATIVE_ENV_VARIABLES);
     const alternativeParameters = {};
@@ -289,7 +220,13 @@ module.exports = {
     
     try {
       if (process.env.SPOT_API_KEY || context.dryRunRequested) {
-        const activityParameters = module.exports.parseActivityParameters(params);
+        context.activityParameters = getActivityPropertiesFromCI();
+        context.activityParameters = {
+          ...context.activityParameters,
+          version: getVersionFromPackage()
+        }
+
+        const activityParameters = module.exports.parseActivityParameters(params, context.activityParameters);
 
         console.log("Parameters resolved from CI and passed arguments:");
         console.log(activityParameters);
@@ -310,7 +247,7 @@ module.exports = {
         );
 
         const notFoundParameters = MINIMUM_REQUIRED_PARAMETERS.filter(
-          (p) => !Object.keys(activityBody.activity).includes(p)
+          (p) => !Object.keys(activityBody.activity).includes(p) || !activityBody.activity[p]
         );
 
         if (notFoundParameters && notFoundParameters.length > 0) {
