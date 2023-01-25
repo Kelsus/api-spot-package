@@ -15,6 +15,8 @@ const CI_DEPLOY_OPTIONS = {
     application: "SITE_NAME",
     environment: "CONTEXT",
     version: "BUILD_ID",
+    runtimeVersion: "NODE_ENV",
+    repoUrl: "REPOSITORY_URL"
   },
   AWS_JOB_ID: {
     environment: "AWS_BRANCH", //<-- IS IT OK TO USE THIS?

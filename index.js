@@ -30,7 +30,10 @@ module.exports = {
   buildActivityBody: (context) => {
     const { commitId, commitMessage, commitDate, commitBranch } = context.localGitInformation;
 
-    const runtimeVersion = process.version;
+    const runtimeVersion = context.activityParameters && context.activityParameters.runtimeVersion
+      ? context.activityParameters.runtimeVersion
+      : process.version;
+
     const {
       environment = null,
       service = null,
