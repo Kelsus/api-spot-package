@@ -1,8 +1,8 @@
 // Based on https://github.com/3rd-Eden/find-package-json
 'use strict';
 
-var path = require('path')
-  , fs = require('fs');
+var path = require('path');
+var fs   = require('fs');
 
 /**
  * Attempt to somewhat safely parse the JSON.
@@ -25,6 +25,7 @@ function parse(data) {
 }
 
 var iteratorSymbol = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol' ? Symbol.iterator : null;
+
 /**
  * Add `Symbol.iterator` method if Symbols are available
  *
@@ -47,7 +48,7 @@ function addSymbolIterator(result) {
  * @returns {Object} Iterator interface.
  * @api public
  */
-module.exports = function find(root) {
+const find = (root) => {
   root = root || process.cwd();
   if (typeof root !== "string") {
     if (typeof root === "object" && typeof root.filename === 'string') {
@@ -89,3 +90,23 @@ module.exports = function find(root) {
     }
   });
 };
+
+const getVersionFromPackage = () => {
+  let packageJson = find().next();
+  let version = packageJson.value.version;
+
+  try {
+    while (packageJson && !packageJson.done) {
+      version = packageJson.value.version;
+      packageJson = packageJson.next();
+    }
+  } catch (e) {
+    console.log('Finished looking up for package.json up in directories hierarchy');
+  }
+
+  console.log(`Version extracted from parent package.json: ${version}`);
+
+  return version;
+}
+
+module.exports.default = getVersionFromPackage;

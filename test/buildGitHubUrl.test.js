@@ -1,42 +1,27 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert");
 
-const { buildGitHubUrl } = require("../index.js");
+const buildGitHubUrl = require('../functions/buildGitHubUrl').default;
 
 describe("Test suite: buildGitHubUrl", () => {
-  it('Should get the project URL from https://github.com/Kelsus/api-spot-package.git', () => {
-    const actualReponse = buildGitHubUrl("https://github.com/Kelsus/api-spot-package.git");
+
+  it('Should get the project URL from { name: api-spot-package, owner: Kelsus, server: github }', () => {
+    const context = {
+      repoData: {
+        name: 'api-spot-package',
+        owner: 'Kelsus',
+        server: 'github',
+      }
+    };
+    const actualReponse = buildGitHubUrl(context);
     const expectedResponse = "https://github.com/Kelsus/api-spot-package";
     assert.strictEqual(actualReponse, expectedResponse);
   });
 
-  it('Should get the project URL from https://gitlab.com/Kelsus/api-spot-package.git', () => {
-    const actualReponse = buildGitHubUrl("https://gitlab.com/Kelsus/api-spot-package.git");
-    const expectedResponse = "https://gitlab.com/Kelsus/api-spot-package";
-    assert.strictEqual(actualReponse, expectedResponse);
-  });
-
-  it('Should get the project URL from https://www.github.com/Kelsus/api-spot-package.git', () => {
-    const actualReponse = buildGitHubUrl("https://www.github.com/Kelsus/api-spot-package.git");
-    const expectedResponse = "https://github.com/Kelsus/api-spot-package";
-    assert.strictEqual(actualReponse, expectedResponse);
-  });
-
-  it('Should get the project URL from git@github.com:Kelsus/spot-api.git', () => {
-    const actualReponse = buildGitHubUrl("git@github.com:Kelsus/spot-api.git");
-    const expectedResponse = "https://github.com/Kelsus/spot-api";
-    assert.strictEqual(actualReponse, expectedResponse);
-  });
-
-  it('Should get the project URL from git@gitlab.com:Kelsus/spot-api.git', () => {
-    const actualReponse = buildGitHubUrl("git@gitlab.com:Kelsus/spot-api.git");
-    const expectedResponse = "https://gitlab.com/Kelsus/spot-api";
-    assert.strictEqual(actualReponse, expectedResponse);
-  });
-
-  it('Should get the project URL from https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api.git', () => {
-    const actualReponse = buildGitHubUrl("https://x-access-token:ghs_93UJtklu2SvM6CB9kqKNbGT4Q8eGcj1jHkRj@github.com/Kelsus/spot-api.git");
-    const expectedResponse = "https://github.com/Kelsus/spot-api";
+  it('Should return null when no repoData is present on context', () => {
+    const context = {};
+    const actualReponse = buildGitHubUrl(context);
+    const expectedResponse = null;
     assert.strictEqual(actualReponse, expectedResponse);
   });
 
