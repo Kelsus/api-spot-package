@@ -28,36 +28,36 @@ const OPTIONAL_ARGS = ["testURL"];
 const getPropertiesFromArguments = (arguments) => {
   if (typeof arguments === "object" && !Array.isArray(arguments)) {
     return arguments;
-  } else {
-    try {
-      let propertiesFromArguments = {};
+  }
 
-      if (!!arguments) {
-        const activityArgs = arguments.slice(2);
-        console.log("Passed parameters:")
-        console.log(activityArgs)
+  try {
+    let propertiesFromArguments = {};
 
-        activityArgs
-          .filter((activityArg) => activityArg.indexOf("--") !== -1)
-          .forEach((activityArg) => {
-            // Getting 'param' from --param=value
-            const argKey = activityArg.split("=")[0].slice(2);
+    if (!!arguments) {
+      const activityArgs = arguments.slice(2);
+      console.log("Passed parameters:")
+      console.log(activityArgs)
 
-            if (ALLOWED_ARGS.includes(argKey) || OPTIONAL_ARGS.includes(argKey)) {
-              // Assigning 'value' from --param=value
-              propertiesFromArguments[argKey] = activityArg.split("=")[1];
-            }
-          });
-      } else {
-        console.log("No args received from command line (Tool not executed by CLI). Using inferred parameters")
-      }
+      activityArgs
+        .filter((activityArg) => activityArg.indexOf("--") !== -1)
+        .forEach((activityArg) => {
+          // Getting 'param' from --param=value
+          const argKey = activityArg.split("=")[0].slice(2);
 
-      console.log(`Properties received from args: ${JSON.stringify(propertiesFromArguments)}`);
-
-      return propertiesFromArguments;
-    } catch (error) {
-      console.log(`Cannot parse activity args: ${error}`);
+          if (ALLOWED_ARGS.includes(argKey) || OPTIONAL_ARGS.includes(argKey)) {
+            // Assigning 'value' from --param=value
+            propertiesFromArguments[argKey] = activityArg.split("=")[1];
+          }
+        });
+    } else {
+      console.log("No args received from command line (Tool not executed by CLI). Using inferred parameters")
     }
+
+    console.log(`Properties received from args: ${JSON.stringify(propertiesFromArguments)}`);
+
+    return propertiesFromArguments;
+  } catch (error) {
+    console.log(`Cannot parse activity args: ${error}`);
   }
 }
 
