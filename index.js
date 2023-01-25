@@ -4,6 +4,7 @@ const doRequest                   = require('./functions/doRequest').default;
 const extractGitHubRepoData       = require('./functions/extractGitHubRepoData').default;
 const generateChangelog           = require('./functions/generateChangelog').default;
 const getActivityPropertiesFromCI = require('./functions/getActivityPropertiesFromCI').default;
+const getVariablesFromEnv         = require('./functions/getVariablesFromEnv').default;
 const getVersionFromPackage       = require('./functions/getVersionFromPackage').default;
 const resolveLocalGitInformation  = require('./functions/resolveLocalGitInformation').default;
 
@@ -36,15 +37,6 @@ const ALLOWED_PARAMETERS = [
 ];
 const OPTIONAL_PARAMETERS = ["testURL"];
 
-const ALTERNATIVE_ENV_VARIABLES = {
-  application: "APP_NAME",
-  service: "SERVICE_NAME",
-  environment: "ENVIRONMENT_NAME",
-  status: "BUILD_STATUS",
-  version: "VERSION",
-  url: "APP_URL",
-};
-
 const EVENT_TYPE = "COMMIT";
 const ACTIVITY_STATUS = "OK";
 const RUNTIME = "NodeJS";
@@ -59,11 +51,6 @@ module.exports = {
     } else {
       try {
         let activityParameters = actitivyProperties;
-
-        activityParameters = {
-          ...activityParameters,
-          ...module.exports.getVariablesFromEnv(),
-        };
 
         if (!!params) {
           const activityArgs = params.slice(2);
@@ -181,23 +168,6 @@ module.exports = {
     return options;
   },
 
-  getVariablesFromEnv: () => {
-    const altEnvVars = Object.values(ALTERNATIVE_ENV_VARIABLES);
-    const alternativeParameters = {};
-
-    console.log("** Checking SPOT Env variables **");
-    console.log(`Deploy SPOT check for the variables: ${altEnvVars}`);
-    for (const [envVar, envVarValue] of Object.entries(
-      ALTERNATIVE_ENV_VARIABLES
-    )) {
-      if (process.env[envVarValue]) {
-        console.log(`Found variable: ${envVarValue}`);
-        alternativeParameters[envVar] = process.env[envVarValue];
-      }
-    }
-    return alternativeParameters;
-  },
-
   /**
    * Main functions responsible for performing deploy spot api activity notification
    */
@@ -221,9 +191,15 @@ module.exports = {
     try {
       if (process.env.SPOT_API_KEY || context.dryRunRequested) {
         context.activityParameters = getActivityPropertiesFromCI();
+        
+        const version = getVersionFromPackage();
+
+        const variablesFromEnv = getVariablesFromEnv();
+        
         context.activityParameters = {
           ...context.activityParameters,
-          version: getVersionFromPackage()
+          ...variablesFromEnv,
+          version: version
         }
 
         const activityParameters = module.exports.parseActivityParameters(params, context.activityParameters);
