@@ -1,3 +1,4 @@
+const buildActivityBody          = require('./functions/buildActivityBody').default;
 const buildGitHubUrl             = require('./functions/buildGitHubUrl').default;
 const checkIfDryRunWasRequested  = require('./functions/checkIfDryRunWasRequested').default;
 const doRequest                  = require('./functions/doRequest').default;
@@ -17,71 +18,7 @@ const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment"];
 // Out of ALLOWED_PARAMETERS since it is an special one
 const DRY_RUN_PARAMETER = "dryRun";
 
-const EVENT_TYPE = "COMMIT";
-const ACTIVITY_STATUS = "OK";
-const RUNTIME = "NodeJS";
-
 module.exports = {
-  /**
-   * Builder for data to be sent as a body on the activity notification
-   *
-   * @param {Object} context Object containing execution details
-   */
-  buildActivityBody: (context) => {
-    const { commitId, commitMessage, commitDate, commitBranch } = context.localGitInformation;
-
-    const runtimeVersion = context.activityParameters && context.activityParameters.runtimeVersion
-      ? context.activityParameters.runtimeVersion
-      : process.version;
-
-    const {
-      environment = null,
-      service = null,
-      application = null,
-      serviceType = null,
-      serviceUrl = null,
-      version = null,
-      status = null,
-      runtime = null,
-      eventType = null,
-      repoUrl = null,
-      organization = null,
-    } = context.activityParameters;
-
-    const repositoryUrl = repoUrl ? repoUrl : context.resolvedRemoteGitURl;
-    const repoData = context.repoData;
-    const repoName = (repoData && repoData.name) ? repoData.name : null;
-    const repoOrganization = (repoData && repoData.owner) ? repoData.owner : null;
-
-    const changelog = context.changelog;
-
-    const activityBody = {
-      activity: {
-        id: commitId,
-        service: service ? service : repoName,
-        organization: organization ? organization : repoOrganization,
-        environment: environment,
-        commitId: commitId,
-        commitBranch: commitBranch,
-        commitDate: commitDate,
-        commitMessage: commitMessage,
-        createdAt: commitDate,
-        status: status ? status : ACTIVITY_STATUS,
-        runtime: runtime ? runtime : RUNTIME,
-        eventType: eventType ? eventType : EVENT_TYPE,
-        lastDeploy: commitDate,
-        changelog: changelog,
-        ...(application && { application }),
-        ...(version && { version }),
-        ...(serviceType && { serviceType }),
-        ...(runtimeVersion && { runtimeVersion }),
-        ...(serviceUrl && { serviceUrl }),
-        ...(repositoryUrl && { repoUrl: repositoryUrl }),
-      },
-    };
-    return activityBody;
-  },
-
   /**
    * Build HTTP POST request options
    *
@@ -113,9 +50,6 @@ module.exports = {
     console.log("***************************************************************************");
     console.log("Notifying deploy spot API");
     console.log("***************************************************************************");
-
-    console.log(process.env);
-    console.log(args);
     
     let context = {
       dryRunParameter: DRY_RUN_PARAMETER,
@@ -153,7 +87,7 @@ module.exports = {
 
         context.changelog = await generateChangelog(context);
 
-        const activityBody = module.exports.buildActivityBody(context);
+        const activityBody = buildActivityBody(context);
 
         const notFoundParameters = MINIMUM_REQUIRED_PARAMETERS.filter(
           (p) => !Object.keys(activityBody.activity).includes(p) || !activityBody.activity[p]

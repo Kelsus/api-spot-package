@@ -1,7 +1,7 @@
 /**
-   * Extracts github repo owner, name and server.
-   * Must be a Github repository: Gitlab, Bitbucket, etc will not work properly
-   */
+ * Extracts github repo owner, name and server.
+ * Must be a Github repository: Gitlab, Bitbucket, etc will not work properly
+ */
 const extractGitHubRepoData = (context) => {
   let url;
 
