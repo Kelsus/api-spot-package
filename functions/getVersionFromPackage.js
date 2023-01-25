@@ -104,8 +104,7 @@ const getVersionFromPackage = () => {
     console.log('Finished looking up for package.json up in directories hierarchy');
   }
 
-  console.log("Version extracted from parent package.json:");
-  console.log(version);
+  console.log(`Version extracted from parent package.json: ${version}`);
 
   return version;
 }

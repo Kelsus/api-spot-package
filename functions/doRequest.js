@@ -35,6 +35,7 @@ const doRequest = (options, data) => {
   } catch (error) {
     console.log("-- Cannot do a request");
     console.log(error);
+    reject(error);
   }
 }
 module.exports.default = doRequest;

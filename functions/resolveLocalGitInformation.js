@@ -1,5 +1,6 @@
 const resolveLocalGitInformation = () => {
   console.log("--Getting git repo info");
+
   const commitId = require("child_process")
     .execSync("git rev-parse HEAD")
     .toString()

@@ -7,7 +7,7 @@ const ALTERNATIVE_ENV_VARIABLES = {
   url: "APP_URL",
 };
 
-const getVariablesFromEnv = () => {
+const getPropertiesFromEnv = () => {
   const altEnvVars = Object.values(ALTERNATIVE_ENV_VARIABLES);
   const propertiesFromEnvironment = {};
 
@@ -27,4 +27,4 @@ const getVariablesFromEnv = () => {
   return propertiesFromEnvironment;
 }
 
-module.exports.default = getVariablesFromEnv;
+module.exports.default = getPropertiesFromEnv;

@@ -27,7 +27,7 @@ const CI_DEPLOY_OPTIONS = {
   },
 };
 
-const getActivityPropertiesFromCI = () => {
+const getPropertiesFromCI = () => {
   const propertiesFromCI = {};
   const deployOptionVars = Object.keys(CI_DEPLOY_OPTIONS);
   const usedCI = deployOptionVars.find((key) => key in process.env);
@@ -52,4 +52,4 @@ const getActivityPropertiesFromCI = () => {
   return propertiesFromCI;
 };
 
-module.exports.default = getActivityPropertiesFromCI;
+module.exports.default = getPropertiesFromCI;
