@@ -4,7 +4,6 @@ const assert = require("node:assert");
 const buildGitHubUrl = require('../functions/buildGitHubUrl').default;
 
 describe("Test suite: buildGitHubUrl", () => {
-
   it('Should get the project URL from { name: api-spot-package, owner: Kelsus, server: github }', () => {
     const context = {
       repoData: {
@@ -24,5 +23,4 @@ describe("Test suite: buildGitHubUrl", () => {
     const expectedResponse = null;
     assert.strictEqual(actualReponse, expectedResponse);
   });
-
 })

@@ -1,22 +1,35 @@
 const resolveLocalGitInformation = () => {
   console.log("--Getting git repo info");
 
-  const commitId = require("child_process")
-    .execSync("git rev-parse HEAD")
-    .toString()
-    .trim();
-  const commitMessage = require("child_process")
-    .execSync("git show -s --format=%s")
-    .toString()
-    .trim();
-  const commitDate = require("child_process")
-    .execSync("git show -s --format=%cd --date=iso")
-    .toString()
-    .trim();
-  const commitBranch = require("child_process")
-    .execSync("git rev-parse --abbrev-ref HEAD")
-    .toString()
-    .trim();
+  let commitId, commitBranch;
+
+  try {
+    commitId = require("child_process")
+      .execSync("git rev-parse HEAD")
+      .toString()
+      .trim();
+    commitBranch = require("child_process")
+      .execSync("git rev-parse --abbrev-ref HEAD")
+      .toString()
+      .trim();
+  } catch {
+    console.log('An error occurred while executing git rev-parse command');
+  }
+
+  let commitMessage, commitDate;
+
+  try {
+    commitMessage = require("child_process")
+      .execSync("git show -s --format=%s")
+      .toString()
+      .trim();
+    commitDate = require("child_process")
+      .execSync("git show -s --format=%cd --date=iso")
+      .toString()
+      .trim();
+  } catch {
+    console.log('An error occurred while executing git show command');
+  }
 
   let remoteFromLocalGit;
   try {
@@ -40,22 +53,16 @@ const resolveLocalGitInformation = () => {
     remoteFromLocalGit = `https://www.github.com./${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}.git`;
   }
 
-  console.log("Parameters extrated from local git:");
-  console.log({
-    commitId,
-    commitMessage,
-    commitDate,
-    commitBranch,
-    remoteFromLocalGit
-  });
+  let localGitInfoResolved = {};
+  if (commitId) localGitInfoResolved.commitId = commitId;
+  if (commitMessage) localGitInfoResolved.commitMessage = commitMessage;
+  if (commitDate) localGitInfoResolved.commitDate = commitDate;
+  if (commitBranch) localGitInfoResolved.commitBranch = commitBranch;
+  if (remoteFromLocalGit) localGitInfoResolved.remoteFromLocalGit = remoteFromLocalGit;
 
-  return {
-    commitId,
-    commitMessage,
-    commitDate,
-    commitBranch,
-    remoteFromLocalGit
-  };
+  console.log(`Parameters extrated from local git: ${JSON.stringify(localGitInfoResolved, null, 2)}`);
+
+  return localGitInfoResolved;
 }
 
 module.exports.default = resolveLocalGitInformation;
