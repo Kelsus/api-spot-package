@@ -128,7 +128,7 @@ module.exports = {
               console.log(errorOnNotification);
             }
         } else {
-          console.log(`[DRY RUN MODE]: Execution finished for activity: ${activity}`);
+          console.log(`[DRY RUN MODE]: Execution finished for activity: ${JSON.stringify(activity)}`);
         }
         
       } else {
