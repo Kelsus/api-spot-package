@@ -21,7 +21,15 @@ const doRequest = (options, data) => {
         });
 
         res.on("end", () => {
-          resolve(responseBody);
+          const responseObject = {
+            statusCode: res.statusCode,
+            statusMessage: res.statusMessage,
+            responseBody: responseBody
+          };
+          
+          if (res.statusCode >= 400) reject(responseObject)
+
+          resolve(responseObject);
         });
       });
 

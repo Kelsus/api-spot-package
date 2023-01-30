@@ -14,8 +14,10 @@ const getLastActivityId = async (context, service, environment) => {
      },
      method: "GET",
    };
+   
    const req = await doRequest(options, "");
-   return req;
+
+   return req.responseBody;
  } catch (error) {
    console.log("--Cannot get last activity");
    console.log(error);
