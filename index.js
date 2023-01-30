@@ -124,8 +124,8 @@ module.exports = {
             if (!errorOnNotification) {
               console.log(`Request successful: ${activityNotificationResult}`);
             } else {
-              console.log(`Request failed: ${activityNotificationResult}`);
-              console.log(`Error: ${errorOnNotification}`);
+              console.log("Request failed:");
+              console.log(errorOnNotification);
             }
         } else {
           console.log(`[DRY RUN MODE]: Execution finished for activity: ${activity}`);
