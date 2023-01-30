@@ -3,12 +3,12 @@ const doRequest = require('./doRequest').default;
 /**
 * Responsible for obtaining git information from the local directory using basic git actions
 */
-const getLastActivityId = async (context, service, environment) => {
+const getLastActivityId = async (context, serviceId, environment) => {
  try {
    const options = {
      hostname: context.deploySpotAPIUrl,
      port: 443,
-     path: `/services/${service}/environments/${environment}/last`,
+     path: `/services/${serviceId}/environments/${environment}/last`,
      headers: {
        "X-Api-Key": process.env.SPOT_API_KEY,
      },
@@ -35,14 +35,26 @@ const generateChangelog = async (context) => {
 
   try {
     let lastActivity;
-    if (!context.dryRunRequested) {
-      lastActivity = await getLastActivityId(
-        context,
-        service,
-        environment
-      );
-    } else {
-      console.log(`[DRY RUN MODE]: No last activity (commit) will be requested. Generating changelog with last ${LATEST_COMMIT_COUNT} commits`);
+
+    let organization = (context.activityParameters && context.activityParameters.organization)
+      ? context.activityParameters.organization
+      : null;
+
+    if (!organization) {
+      organization = (context.repoData && context.repoData.owner) ? context.repoData.owner : null;
+    }
+
+    if (!!organization) {
+      if (!context.dryRunRequested) {
+        const serviceId = `${organization}-${service}`;
+        lastActivity = await getLastActivityId(
+          context,
+          serviceId,
+          environment
+        );
+      } else {
+        console.log(`[DRY RUN MODE]: No last activity (commit) will be requested. Generating changelog with last ${LATEST_COMMIT_COUNT} commits`);
+      }
     }
 
     let lastActivityJSON;
