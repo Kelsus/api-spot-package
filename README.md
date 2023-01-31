@@ -149,6 +149,8 @@ activity:
         lastDeploy,
         changelog,
         organization,
+        dependencies,
+        devDependencies,
     }
 ```
 
