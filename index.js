@@ -124,7 +124,7 @@ module.exports = {
             });
 
             if (!errorOnNotification) {
-              console.log(`Request successful: ${activityNotificationResult}`);
+              console.log(`Request successful: ${JSON.stringify(activityNotificationResult)}`);
             } else {
               console.log("Request failed:");
               console.log(errorOnNotification);
