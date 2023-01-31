@@ -91,13 +91,19 @@ const find = (root) => {
   });
 };
 
-const getVersionFromPackage = () => {
-  let packageJson = find().next();
-  let version = packageJson.value.version;
+const getInfoFromPackage = () => {
+  let packageJson     = find().next();
+
+  let version         = packageJson.value.version;
+  let dependencies    = packageJson.value.dependencies;
+  let devDependencies = packageJson.value.devDependencies;
 
   try {
     while (packageJson && !packageJson.done) {
       version = packageJson.value.version;
+      dependencies = packageJson.value.dependencies;
+      devDependencies = packageJson.value.devDependencies;
+
       packageJson = packageJson.next();
     }
   } catch (e) {
@@ -106,7 +112,11 @@ const getVersionFromPackage = () => {
 
   console.log(`Version extracted from parent package.json: ${version}`);
 
-  return version;
+  return {
+    version,
+    dependencies,
+    devDependencies
+  };
 }
 
-module.exports.default = getVersionFromPackage;
+module.exports.default = getInfoFromPackage;

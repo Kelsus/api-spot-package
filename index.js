@@ -7,7 +7,7 @@ const generateChangelog          = require('./functions/generateChangelog').defa
 const getPropertiesFromArguments = require('./functions/getPropertiesFromArguments').default;
 const getPropertiesFromCI        = require('./functions/getPropertiesFromCI').default;
 const getPropertiesFromEnv       = require('./functions/getPropertiesFromEnv').default;
-const getVersionFromPackage      = require('./functions/getVersionFromPackage').default;
+const getInfoFromPackage         = require('./functions/getInfoFromPackage').default;
 const resolveLocalGitInformation = require('./functions/resolveLocalGitInformation').default;
 
 const DEPLOY_SPOT_API_URL = "zwdknc0wz3.execute-api.us-east-1.amazonaws.com";
@@ -68,13 +68,15 @@ module.exports = {
 
         const propertiesFromArguments = getPropertiesFromArguments(args);
 
-        const version = getVersionFromPackage();
+        const packageInfo = getInfoFromPackage();
         
         context.activityParameters = {
           ...propertiesFromCI,
           ...propertiesFromEnv,
           ...propertiesFromArguments,
-          version: version
+          version: packageInfo.version,
+          dependencies: packageInfo.dependencies,
+          devDependencies: packageInfo.devDependencies
         }
 
         console.log(`Properties merge result: ${JSON.stringify(context.activityParameters, null, 2)}`);
