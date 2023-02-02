@@ -65,4 +65,10 @@ describe("Test suite: checkIfDryRunWasRequested", () => {
 
     assert.equal(dryRunWasRequested, false);
   });
+
+  it('Should return true when no args passed (therefore no --dryRun)', () => {
+    const dryRunWasRequested = checkIfDryRunWasRequested(context, undefined);
+
+    assert.equal(dryRunWasRequested, false);
+  });
 });
