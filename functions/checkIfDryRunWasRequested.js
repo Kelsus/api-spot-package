@@ -4,6 +4,8 @@
  * For example, will be true for: --dryRun; --dryRun=true; --dryRun=whatever; --dryRun=
  */
 const checkIfDryRunWasRequested = (context, params) => {
+  if (!params) return false;
+
   return params
     .filter((param) => param.indexOf("--") !== -1)
     .some((param) => param.split("=")[0].slice(2) === context.dryRunParameter);
