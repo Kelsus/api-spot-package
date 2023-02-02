@@ -94,6 +94,8 @@ const find = (root) => {
 const getInfoFromPackage = () => {
   let packageJson     = find().next();
 
+  if (!packageJson || !packageJson.value) return {};
+
   let version         = packageJson.value.version;
   let dependencies    = packageJson.value.dependencies;
   let devDependencies = packageJson.value.devDependencies;
