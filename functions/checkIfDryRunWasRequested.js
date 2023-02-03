@@ -6,6 +6,10 @@
 const checkIfDryRunWasRequested = (context, params) => {
   if (!params) return false;
 
+  if (typeof params === "object" && !Array.isArray(params)) {
+    return params[context.dryRunParameter] === true;
+  }
+
   return params
     .filter((param) => param.indexOf("--") !== -1)
     .some((param) => param.split("=")[0].slice(2) === context.dryRunParameter);

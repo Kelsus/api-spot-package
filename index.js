@@ -98,7 +98,7 @@ module.exports = {
         if (notFoundParameters && notFoundParameters.length > 0) {
           console.log("Notification not sent. Some activity parameters are missing");
           console.log(`Parameters missing: ${notFoundParameters}`);
-          process.exit(9);
+          throw new Error("Some activity parameters are missing");
         }
 
         const activity = JSON.stringify(activityBody);

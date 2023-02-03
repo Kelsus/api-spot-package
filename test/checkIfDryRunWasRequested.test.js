@@ -71,4 +71,23 @@ describe("Test suite: checkIfDryRunWasRequested", () => {
 
     assert.equal(dryRunWasRequested, false);
   });
+
+  it('Should return false when params passed explicitly as object (invoked from main) and with no dryRun', () => {
+    const args = {
+      environment: 'prod'
+    }
+    const dryRunWasRequested = checkIfDryRunWasRequested(context, args);
+
+    assert.equal(dryRunWasRequested, false);
+  });
+
+  it('Should return true when params passed explicitly as object (invoked from main) and with dryRun in true', () => {
+    const args = {
+      environment: 'prod',
+      dryRun: true
+    }
+    const dryRunWasRequested = checkIfDryRunWasRequested(context, args);
+
+    assert.equal(dryRunWasRequested, true);
+  });
 });
