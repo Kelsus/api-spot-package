@@ -28,6 +28,8 @@ const buildActivityBody = (context) => {
     eventType = null,
     repoUrl = null,
     organization = null,
+    ciRuntime = null,
+    ciRuntimeVersion = null,
   } = context.activityParameters;
 
   const repositoryUrl = repoUrl ? repoUrl : context.resolvedRemoteGitURl;
@@ -59,6 +61,8 @@ const buildActivityBody = (context) => {
       ...(devDependencies && { devDependencies }),
       ...(serviceType && { serviceType }),
       ...(runtimeVersion && { runtimeVersion }),
+      ...(ciRuntime && { ciRuntime }),
+      ...(ciRuntimeVersion && { ciRuntimeVersion }),
       ...(serviceUrl && { serviceUrl }),
       ...(repositoryUrl && { repoUrl: repositoryUrl }),
     },

@@ -144,6 +144,8 @@ activity:
         serviceType,
         runtime,
         runtimeVersion,
+        ciRuntime,
+        ciRuntimeVersion,
         serviceUrl,
         repoUrl,
         lastDeploy,
