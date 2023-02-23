@@ -15,6 +15,8 @@ const ALLOWED_ARGS = [
   "serviceType",
   "runtime",
   "runtimeVersion",
+  "ciRuntime",
+  "ciRuntimeVersion",
   "serviceUrl",
   "repoUrl",
   "lastDeploy",

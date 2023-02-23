@@ -93,6 +93,8 @@ npx @kelsus/api-spot-package --service=api-spot-package
 --serviceType
 --runtime
 --runtimeVersion
+--ciRuntime
+--ciRuntimeVersion
 --serviceUrl
 --repoUrl
 --lastDeploy
@@ -144,6 +146,8 @@ activity:
         serviceType,
         runtime,
         runtimeVersion,
+        ciRuntime,
+        ciRuntimeVersion,
         serviceUrl,
         repoUrl,
         lastDeploy,
