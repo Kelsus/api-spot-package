@@ -59,7 +59,7 @@ describe("Test suite: buildActivityBody", () => {
         dependencies: "mocked-dependencies",
         devDependencies: "mocked-dev-dependencies",
         serviceType: "mocked-service-type",
-        runtimeVersion: "v19.7.0",
+        runtimeVersion: "v19.5.0",
         ciRuntime: "mocked-ci-runtime",
         ciRuntimeVersion: "mocked-ci-runtime-version",
         serviceUrl: "mocked-service-url",
@@ -103,7 +103,7 @@ describe("Test suite: buildActivityBody", () => {
         eventType: "COMMIT",
         lastDeploy: nowTimestamp.getTime(),
         changelog: "mocked-changelog",
-        runtimeVersion: "v19.7.0",
+        runtimeVersion: "v19.5.0",
         repoUrl: "mocked-resolved-remote-git-url",
       },
     };
