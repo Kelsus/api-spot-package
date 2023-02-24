@@ -35,8 +35,8 @@ describe("Test suite: buildActivityBody", () => {
       },
       changelog: "mocked-changelog",
     };
-    const nowTimestamp = new Date();
-
+    const timestamp = new Date().getTime();
+    const dateString = new Date(timestamp).toISOString().slice(0, -5) + 'Z';;
     const actualReponse = buildActivityBody(mockedContext);
     const expectedResponse = {
       activity: {
@@ -52,7 +52,7 @@ describe("Test suite: buildActivityBody", () => {
         status: "mocked-status",
         runtime: "mocked-runtime",
         eventType: "mocked-event-type",
-        lastDeploy: nowTimestamp.getTime(),
+        lastDeploy: dateString,
         changelog: "mocked-changelog",
         application: "mocked-application",
         version: "mocked-version",
@@ -85,7 +85,8 @@ describe("Test suite: buildActivityBody", () => {
       },
       changelog: "mocked-changelog",
     };
-    const nowTimestamp = new Date();
+    const timestamp = new Date().getTime();
+    const dateString = new Date(timestamp).toISOString().slice(0, -5) + 'Z';;
     const actualReponse = buildActivityBody(mockedContext);
     const expectedResponse = {
       activity: {
@@ -101,7 +102,7 @@ describe("Test suite: buildActivityBody", () => {
         status: "OK",
         runtime: "NodeJS",
         eventType: "COMMIT",
-        lastDeploy: nowTimestamp.getTime(),
+        lastDeploy: dateString,
         changelog: "mocked-changelog",
         runtimeVersion: "v19.5.0",
         repoUrl: "mocked-resolved-remote-git-url",
