@@ -8,11 +8,13 @@ const RUNTIME = "NodeJS";
  * @param {Object} context Object containing execution details
  */
 const buildActivityBody = (context) => {
-  const { commitId, commitMessage, commitDate, commitBranch } = context.localGitInformation;
+  const { commitId, commitMessage, commitDate, commitBranch } =
+    context.localGitInformation;
 
-  const runtimeVersion = context.activityParameters && context.activityParameters.runtimeVersion
-    ? context.activityParameters.runtimeVersion
-    : process.version;
+  const runtimeVersion =
+    context.activityParameters && context.activityParameters.runtimeVersion
+      ? context.activityParameters.runtimeVersion
+      : process.version;
 
   const {
     environment = null,
@@ -34,9 +36,9 @@ const buildActivityBody = (context) => {
 
   const repositoryUrl = repoUrl ? repoUrl : context.resolvedRemoteGitURl;
   const repoData = context.repoData;
-  const repoName = (repoData && repoData.name) ? repoData.name : null;
-  const repoOrganization = (repoData && repoData.owner) ? repoData.owner : null;
-
+  const repoName = repoData && repoData.name ? repoData.name : null;
+  const repoOrganization = repoData && repoData.owner ? repoData.owner : null;
+  const deployTime = new Date().toISOString();
   const changelog = context.changelog;
 
   const activityBody = {
@@ -53,7 +55,7 @@ const buildActivityBody = (context) => {
       status: status ? status : ACTIVITY_STATUS,
       runtime: runtime ? runtime : RUNTIME,
       eventType: eventType ? eventType : EVENT_TYPE,
-      lastDeploy: commitDate,
+      lastDeploy: deployTime,
       changelog: changelog,
       ...(application && { application }),
       ...(version && { version }),
@@ -68,6 +70,6 @@ const buildActivityBody = (context) => {
     },
   };
   return activityBody;
-}
+};
 
 module.exports.default = buildActivityBody;
