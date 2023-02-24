@@ -38,7 +38,7 @@ const buildActivityBody = (context) => {
   const repoData = context.repoData;
   const repoName = repoData && repoData.name ? repoData.name : null;
   const repoOrganization = repoData && repoData.owner ? repoData.owner : null;
-  const timestamp = new Date().toISOString();
+  const deployTime = new Date().toISOString();
   const changelog = context.changelog;
 
   const activityBody = {
@@ -55,7 +55,7 @@ const buildActivityBody = (context) => {
       status: status ? status : ACTIVITY_STATUS,
       runtime: runtime ? runtime : RUNTIME,
       eventType: eventType ? eventType : EVENT_TYPE,
-      lastDeploy: timestamp,
+      lastDeploy: deployTime,
       changelog: changelog,
       ...(application && { application }),
       ...(version && { version }),
