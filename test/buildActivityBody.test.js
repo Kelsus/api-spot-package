@@ -3,7 +3,10 @@ const assert = require("node:assert");
 const buildActivityBody = require("../functions/buildActivityBody").default;
 
 describe("Test suite: buildActivityBody", () => {
-  test("Should return object with activity body", () => {
+  test("Should return object with activity body", (t) => {
+    const mockedDate = () => "2023-02-16 18:53:24 +0000";
+    const fn = t.mock.method(Date.prototype, "toISOString", mockedDate);
+
     const mockedContext = {
       localGitInformation: {
         commitId: "mocked-commit-id",
@@ -35,8 +38,6 @@ describe("Test suite: buildActivityBody", () => {
       },
       changelog: "mocked-changelog",
     };
-    const timestamp = new Date().getTime();
-    const dateString = new Date(timestamp).toISOString().slice(0, -5) + 'Z';;
     const actualReponse = buildActivityBody(mockedContext);
     const expectedResponse = {
       activity: {
@@ -52,7 +53,7 @@ describe("Test suite: buildActivityBody", () => {
         status: "mocked-status",
         runtime: "mocked-runtime",
         eventType: "mocked-event-type",
-        lastDeploy: dateString,
+        lastDeploy: "2023-02-16 18:53:24 +0000",
         changelog: "mocked-changelog",
         application: "mocked-application",
         version: "mocked-version",
@@ -69,7 +70,9 @@ describe("Test suite: buildActivityBody", () => {
     assert.deepStrictEqual(actualReponse, expectedResponse);
   });
 
-  test("Should return object with activity body with default values", () => {
+  test("Should return object with activity body with default values", (t) => {
+    const mockedDate = () => "2023-02-16 18:53:24 +0000";
+    const fn = t.mock.method(Date.prototype, "toISOString", mockedDate);
     const mockedContext = {
       localGitInformation: {
         commitId: "mocked-commit-id",
@@ -85,8 +88,6 @@ describe("Test suite: buildActivityBody", () => {
       },
       changelog: "mocked-changelog",
     };
-    const timestamp = new Date().getTime();
-    const dateString = new Date(timestamp).toISOString().slice(0, -5) + 'Z';;
     const actualReponse = buildActivityBody(mockedContext);
     const expectedResponse = {
       activity: {
@@ -102,7 +103,7 @@ describe("Test suite: buildActivityBody", () => {
         status: "OK",
         runtime: "NodeJS",
         eventType: "COMMIT",
-        lastDeploy: dateString,
+        lastDeploy: "2023-02-16 18:53:24 +0000",
         changelog: "mocked-changelog",
         runtimeVersion: "v19.5.0",
         repoUrl: "mocked-resolved-remote-git-url",
