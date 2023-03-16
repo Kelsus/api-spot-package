@@ -1,5 +1,5 @@
 # Kelsus Spot API Package
-
+BORRAR
 ## Description
 Post deploy script for [Kelsus Spot](https://spot.kelsus.com/)
 
