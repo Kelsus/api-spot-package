@@ -72,6 +72,7 @@ const generateChangelog = async (context) => {
         }`
       )
       .toString()
+      .replace(/"/g, '\\\"')
       .trim()
       .split(/\r?\n/);
 
