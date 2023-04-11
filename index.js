@@ -75,8 +75,8 @@ module.exports = {
           ...propertiesFromEnv,
           ...propertiesFromArguments,
           version: packageInfo ? packageInfo.version : null,
-          dependencies: packageInfo ? packageInfo.dependencies : null,
-          devDependencies: packageInfo ? packageInfo.devDependencies : null
+          // dependencies: packageInfo ? packageInfo.dependencies : null,
+          // devDependencies: packageInfo ? packageInfo.devDependencies : null
         }
 
         console.log(`Properties merge result: ${JSON.stringify(context.activityParameters, null, 2)}`);

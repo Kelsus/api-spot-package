@@ -97,14 +97,14 @@ const getInfoFromPackage = () => {
   if (!packageJson || !packageJson.value) return {};
 
   let version         = packageJson.value.version;
-  let dependencies    = packageJson.value.dependencies;
-  let devDependencies = packageJson.value.devDependencies;
+  // let dependencies    = packageJson.value.dependencies;
+  // let devDependencies = packageJson.value.devDependencies;
 
   try {
     while (packageJson && !packageJson.done) {
       version = packageJson.value.version;
-      dependencies = packageJson.value.dependencies;
-      devDependencies = packageJson.value.devDependencies;
+      // dependencies = packageJson.value.dependencies;
+      // devDependencies = packageJson.value.devDependencies;
 
       packageJson = packageJson.next();
     }
@@ -116,8 +116,8 @@ const getInfoFromPackage = () => {
 
   return {
     version,
-    dependencies,
-    devDependencies
+    // dependencies,
+    // devDependencies
   };
 }
 
