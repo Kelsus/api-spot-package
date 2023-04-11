@@ -10,7 +10,7 @@ const getPropertiesFromEnv       = require('./functions/getPropertiesFromEnv').d
 const getInfoFromPackage         = require('./functions/getInfoFromPackage').default;
 const resolveLocalGitInformation = require('./functions/resolveLocalGitInformation').default;
 
-const DEPLOY_SPOT_API_URL = "0bsk8qd5l2.execute-api.us-east-1.amazonaws.com";
+const DEPLOY_SPOT_API_URL = "sdhrf8ktji.execute-api.us-east-1.amazonaws.com";
 const DEPLOY_SPOT_API_PATH = "/activity";
 
 const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment"];
