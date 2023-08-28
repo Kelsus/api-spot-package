@@ -1,0 +1,1 @@
+declare module '@kelsus/api-spot-package';

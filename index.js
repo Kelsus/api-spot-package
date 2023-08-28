@@ -1,122 +1,24 @@
-/* eslint @typescript-eslint/no-var-requires: "off" */
-const https = require("https");
-const DEPLOY_SPOT_API_URL = "api.spot.kelsus.com";
+const buildActivityBody          = require('./functions/buildActivityBody').default;
+const buildGitHubUrl             = require('./functions/buildGitHubUrl').default;
+const checkIfDryRunWasRequested  = require('./functions/checkIfDryRunWasRequested').default;
+const doRequest                  = require('./functions/doRequest').default;
+const extractGitHubRepoData      = require('./functions/extractGitHubRepoData').default;
+const generateChangelog          = require('./functions/generateChangelog').default;
+const getPropertiesFromArguments = require('./functions/getPropertiesFromArguments').default;
+const getPropertiesFromCI        = require('./functions/getPropertiesFromCI').default;
+const getPropertiesFromEnv       = require('./functions/getPropertiesFromEnv').default;
+const getInfoFromPackage         = require('./functions/getInfoFromPackage').default;
+const resolveLocalGitInformation = require('./functions/resolveLocalGitInformation').default;
+
+const DEPLOY_SPOT_API_URL = "sdhrf8ktji.execute-api.us-east-1.amazonaws.com";
 const DEPLOY_SPOT_API_PATH = "/activity";
-const MINIMUM_REQUIRED_PARAMETERS = [
-  "application",
-  "environment",
-  "type",
-  "repository",
-  "url",
-  "version",
-];
-const OPTIONAL_PARAMETERS = ["testURL"];
-const EVENT_TYPE = "COMMIT";
-const ACTIVITY_STATUS = "OK";
-const RUNTIME = "NodeJS";
+
+const MINIMUM_REQUIRED_PARAMETERS = ["service", "environment"];
+
+// Out of ALLOWED_PARAMETERS since it is an special one
+const DRY_RUN_PARAMETER = "dryRun";
+
 module.exports = {
-  /**
-   * Read activity parameters in the shape of --param=value from script invocation
-   * Includes only parameters with key within MINIMUM_REQUIRED_PARAMETERS list
-   */
-  parseActivityParameters: (params) => {
-    const activityArgs = params.slice(2);
-    let activityParameters = {};
-
-    activityArgs
-      .filter((activityArg) => activityArg.indexOf("--") !== -1)
-      .forEach((activityArg) => {
-        // Getting 'param' from --param=value
-        const argKey = activityArg.split("=")[0].slice(2);
-
-        if (
-          MINIMUM_REQUIRED_PARAMETERS.includes(argKey) ||
-          OPTIONAL_PARAMETERS.includes(argKey)
-        ) {
-          // Assigning 'value' from --param=value
-          activityParameters[argKey] = activityArg.split("=")[1];
-        }
-      });
-
-    return activityParameters;
-  },
-
-  /**
-   * Responsible for obtaining git information from the local directory using basic git actions
-   */
-  resolveLocalGitInformation: () => {
-    var path = require("path");
-    const commitId = require("child_process")
-      .execSync("git rev-parse HEAD")
-      .toString()
-      .trim();
-    const commitMessage = require("child_process")
-      .execSync("git show -s --format=%s")
-      .toString()
-      .trim();
-    const commitDate = require("child_process")
-      .execSync("git show -s --format=%cd --date=iso")
-      .toString()
-      .trim();
-    const commitBranch = require("child_process")
-      .execSync("git rev-parse --abbrev-ref HEAD")
-      .toString()
-      .trim();
-
-    const _path = require("child_process")
-      .execSync(`git rev-parse --show-toplevel`)
-      .toString()
-      .trim();
-
-    const repoName = path.basename(_path);
-
-    return {
-      commitId,
-      commitMessage,
-      commitDate,
-      commitBranch,
-      repoName,
-    };
-  },
-
-  /**
-   * Builder for data to be sent as a body on the activity notification
-   *
-   * @param {Object} Activity parameters pased from execution call
-   */
-  buildActivityBody: (activityParameters) => {
-    const { commitId, commitMessage, commitDate, commitBranch, repoName } =
-      module.exports.resolveLocalGitInformation();
-    const runtimeVersion = process.version;
-    const { application, environment, type, repository, url, version } =
-      activityParameters;
-
-    const activityBody = JSON.stringify({
-      activity: {
-        id: commitId,
-        service: repoName,
-        eventType: EVENT_TYPE,
-        createdAt: commitDate,
-        commitId: commitId,
-        commitMessage: commitMessage,
-        commitDate: commitDate,
-        commitBranch: commitBranch,
-        application: application,
-        status: ACTIVITY_STATUS,
-        environment: environment,
-        version: version,
-        serviceType: type,
-        runtime: RUNTIME,
-        runtimeVersion: runtimeVersion,
-        serviceUrl: url,
-        repoUrl: repository,
-        lastDeploy: commitDate,
-      },
-    });
-
-    return activityBody;
-  },
-
   /**
    * Build HTTP POST request options
    *
@@ -127,12 +29,6 @@ module.exports = {
    * @return {Object} options for the POST request
    */
   buildPOSTRequestOptions: (URL, path, contentLength) => {
-    let API_KEY = "";
-    if (process.env.SPOT_API_KEY) {
-      API_KEY = process.env.SPOT_API_KEY;
-    } else {
-      console.log("No SPOT API KEY");
-    }
     const options = {
       hostname: URL,
       port: 443,
@@ -141,98 +37,107 @@ module.exports = {
       headers: {
         "Content-Type": "application/json",
         "Content-Length": contentLength,
-        "X-Api-Key": API_KEY,
+        "x-api-key": process.env.SPOT_API_KEY,
       },
     };
     return options;
   },
 
   /**
-   * Do a request with options provided.
-   *
-   * @param {Object} options
-   * @param {Object} data
-   *
-   * @return {Promise} a promise of request
-   */
-  doRequest: (options, data) => {
-    return new Promise((resolve, reject) => {
-      const req = https.request(options, (res) => {
-        res.setEncoding("utf8");
-        let responseBody = "";
-
-        res.on("data", (chunk) => {
-          responseBody += chunk;
-        });
-
-        res.on("end", () => {
-          resolve(responseBody);
-        });
-      });
-
-      req.on("error", (err) => {
-        reject(err);
-      });
-
-      req.write(data);
-      req.end();
-    });
-  },
-
-  /**
    * Main functions responsible for performing deploy spot api activity notification
    */
-  main: async (params) => {
-    console.log(
-      "***************************************************************************"
-    );
+  main: async (args) => {
+    console.log("***************************************************************************");
     console.log("Notifying deploy spot API");
-    console.log(
-      "***************************************************************************"
-    );
-
-    const activityParameters = module.exports.parseActivityParameters(params);
-
-    if (
-      !MINIMUM_REQUIRED_PARAMETERS.every((p) =>
-        Object.keys(activityParameters).includes(p)
-      )
-    ) {
-      console.log(
-        "Notification not sent. Some activity parameters are missing"
-      );
-      console.log(`Required parameters: ${MINIMUM_REQUIRED_PARAMETERS}`);
-      process.exit(9);
+    console.log("***************************************************************************");
+    
+    let context = {
+      dryRunParameter: DRY_RUN_PARAMETER,
+      deploySpotAPIUrl: DEPLOY_SPOT_API_URL
     }
 
-    let apiURL = activityParameters.testURL
-      ? activityParameters.testURL
-      : DEPLOY_SPOT_API_URL;
+    context.dryRunRequested = checkIfDryRunWasRequested(context, args);
 
-    console.log(`Sending HTTP POST to ${apiURL}`);
+    if (context.dryRunRequested) console.log("[DRY RUN MODE]: Dry run requested (No API call will be executed).");
+    
+    try {
+      if (process.env.SPOT_API_KEY || context.dryRunRequested) {
+        const propertiesFromCI = getPropertiesFromCI();
 
-    const activityBody = module.exports.buildActivityBody(activityParameters);
-    const options = module.exports.buildPOSTRequestOptions(
-      apiURL,
-      DEPLOY_SPOT_API_PATH,
-      activityBody.length
-    );
+        const propertiesFromEnv = getPropertiesFromEnv();
 
-    let errorOnNotification;
+        const propertiesFromArguments = getPropertiesFromArguments(args);
 
-    const activityNotificationResult = await module.exports
-      .doRequest(options, activityBody)
-      .catch((error) => {
-        errorOnNotification = error;
-      });
+        const packageInfo = getInfoFromPackage();
+        
+        context.activityParameters = {
+          ...propertiesFromCI,
+          ...propertiesFromEnv,
+          ...propertiesFromArguments,
+          version: packageInfo ? packageInfo.version : null,
+          // dependencies: packageInfo ? packageInfo.dependencies : null,
+          // devDependencies: packageInfo ? packageInfo.devDependencies : null
+        }
 
-    if (!errorOnNotification) {
-      console.log(`Request successful: ${activityNotificationResult}`);
-      console.log(`Notification successful for activity: ${activityBody}`);
-    } else {
-      console.log(`Notification failed for activity: ${activityBody}`);
-      console.log(`Request status: ${activityNotificationResult}`);
-      console.log(`${errorOnNotification}`);
+        console.log(`Properties merge result: ${JSON.stringify(context.activityParameters, null, 2)}`);
+
+        context.localGitInformation = resolveLocalGitInformation();
+
+        context.repoData = extractGitHubRepoData(context);
+
+        context.resolvedRemoteGitURl = buildGitHubUrl(context);
+
+        context.changelog = await generateChangelog(context);
+
+        const activityBody = buildActivityBody(context);
+
+        const notFoundParameters = MINIMUM_REQUIRED_PARAMETERS.filter(
+          (p) => !Object.keys(activityBody.activity).includes(p) || !activityBody.activity[p]
+        );
+
+        if (notFoundParameters && notFoundParameters.length > 0) {
+          console.log("Notification not sent. Some activity parameters are missing");
+          console.log(`Parameters missing: ${notFoundParameters}`);
+          throw new Error("Some activity parameters are missing");
+        }
+
+        const activity = JSON.stringify(activityBody);
+
+        if (!context.dryRunRequested) {
+          const apiURL = context.activityParameters.testURL
+            ? activityParameters.testURL
+            : context.deploySpotAPIUrl;
+
+          const options = module.exports.buildPOSTRequestOptions(
+            apiURL,
+            DEPLOY_SPOT_API_PATH,
+            activity.length
+          );
+
+          console.log(`Sending HTTP POST to ${apiURL} with body: ${activity}`);
+
+          let errorOnNotification;
+
+          const activityNotificationResult = await doRequest(options, activity)
+            .catch((error) => {
+              errorOnNotification = error;
+            });
+
+            if (!errorOnNotification) {
+              console.log(`Request successful: ${JSON.stringify(activityNotificationResult)}`);
+            } else {
+              console.log("Request failed:");
+              console.log(errorOnNotification);
+            }
+        } else {
+          console.log(`[DRY RUN MODE]: Execution finished for activity: ${JSON.stringify(activity)}`);
+        }
+        
+      } else {
+        console.log("SPOT_API_KEY Environment variable not found.");
+      }
+    } catch (error) {
+      console.log(error);
     }
   },
 };

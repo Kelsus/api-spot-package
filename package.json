@@ -1,10 +1,13 @@
 {
   "name": "@kelsus/api-spot-package",
-  "version": "1.0.4",
+  "version": "1.4.19",
   "description": "Spot Post deploy request",
   "main": "index.js",
   "bin": {
-    "spot-package": "bin/npx.js"
+    "@kelsus/api-spot-package": "bin/npx.js"
+  },
+  "engines": {
+    "node": ">=12.0.0"
   },
   "keywords": [
     "kelsus",
@@ -17,8 +20,9 @@
     "url": "git+https://github.com/Kelsus/api-spot-package.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test"
   },
   "author": "Kelsus",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {}
 }
