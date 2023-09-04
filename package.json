@@ -1,6 +1,6 @@
 {
   "name": "@kelsus/api-spot-package",
-  "version": "1.4.21",
+  "version": "1.4.22",
   "description": "Spot Post deploy request",
   "main": "index.js",
   "bin": {
