@@ -1,3 +1,4 @@
+var { version } = require('./package.json');
 const buildActivityBody          = require('./functions/buildActivityBody').default;
 const buildGitHubUrl             = require('./functions/buildGitHubUrl').default;
 const checkIfDryRunWasRequested  = require('./functions/checkIfDryRunWasRequested').default;
@@ -49,6 +50,7 @@ module.exports = {
   main: async (args) => {
     console.log("***************************************************************************");
     console.log("Notifying deploy spot API");
+    console.log(`Running api-spot-package version: v${version}`);
     console.log("***************************************************************************");
     
     let context = {

@@ -1,3 +1,4 @@
+const { sanitizeCommit } = require('./utils');
 const EVENT_TYPE = "COMMIT";
 const ACTIVITY_STATUS = "OK";
 const RUNTIME = "NodeJS";
@@ -50,7 +51,7 @@ const buildActivityBody = (context) => {
       commitId: commitId,
       commitBranch: commitBranch,
       commitDate: commitDate,
-      commitMessage: commitMessage,
+      commitMessage: sanitizeCommit(commitMessage),
       createdAt: commitDate,
       status: status ? status : ACTIVITY_STATUS,
       runtime: runtime ? runtime : RUNTIME,
