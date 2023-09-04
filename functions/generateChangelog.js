@@ -1,4 +1,5 @@
 const doRequest = require('./doRequest').default;
+const { sanitizeCommit } = require('./utils');
 
 /**
 * Responsible for obtaining git information from the local directory using basic git actions
@@ -66,16 +67,14 @@ const generateChangelog = async (context) => {
     const lastId = lastActivityJSON && lastActivityJSON.response
       ? lastActivityJSON.response.commitId
       : null;
-    const changelog = require("child_process")
-      .execSync(
-        `git log --pretty=format:"%h %s" ${lastId ? lastId + ".." + currentCommitId : `-n ${LATEST_COMMIT_COUNT}`
-        }`
-      )
-      .toString()
-      .replace(/“/g, `"`)
-      .replace(/”/g, `"`)
-      .trim()
-      .split(/\r?\n/);
+      const changelog = sanitizeCommit(
+        require("child_process")
+          .execSync(
+            `git log --pretty=format:"%h %s" ${lastId ? lastId + ".." + currentCommitId : `-n ${LATEST_COMMIT_COUNT}`
+            }`
+          )
+          .toString()
+      ).split(/\r?\n/);
 
     if (!lastId && changelog.length > 15) {
       changelog.slice(0, 15);
@@ -90,5 +89,7 @@ const generateChangelog = async (context) => {
     console.log(error);
   }
 }
+
+module.exports.sanitizeCommit = sanitizeCommit;
 
 module.exports.default = generateChangelog;
