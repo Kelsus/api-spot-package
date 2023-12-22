@@ -29,7 +29,7 @@ module.exports = {
    *
    * @return {Object} options for the POST request
    */
-  buildPOSTRequestOptions: (URL, path, contentLength) => {
+  buildPOSTRequestOptions: (URL, path, contentLength, spotApiKey) => {
     const options = {
       hostname: URL,
       port: 443,
@@ -38,7 +38,7 @@ module.exports = {
       headers: {
         "Content-Type": "application/json",
         "Content-Length": contentLength,
-        "x-api-key": process.env.SPOT_API_KEY,
+        "x-api-key": spotApiKey,
       },
     };
     return options;
@@ -63,7 +63,7 @@ module.exports = {
     if (context.dryRunRequested) console.log("[DRY RUN MODE]: Dry run requested (No API call will be executed).");
     
     try {
-      if (process.env.SPOT_API_KEY || context.dryRunRequested) {
+      if (SPOT_API_KEY || context.dryRunRequested || args.spotApiKey ) {
         const propertiesFromCI = getPropertiesFromCI();
 
         const propertiesFromEnv = getPropertiesFromEnv();
@@ -110,10 +110,14 @@ module.exports = {
             ? activityParameters.testURL
             : context.deploySpotAPIUrl;
 
+          const spotApiKey = args.spotApiKey
+            ? spotApiKey
+            : process.env.SPOT_API_KEY;
           const options = module.exports.buildPOSTRequestOptions(
             apiURL,
             DEPLOY_SPOT_API_PATH,
-            activity.length
+            activity.length,
+            spotApiKey
           );
 
           console.log(`Sending HTTP POST to ${apiURL} with body: ${activity}`);
