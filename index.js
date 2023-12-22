@@ -110,7 +110,9 @@ module.exports = {
             ? activityParameters.testURL
             : context.deploySpotAPIUrl;
 
-          const spotApiKey=  args.spotApiKey?spotApiKey:process.env.SPOT_API_KEY
+          const spotApiKey = args.spotApiKey
+            ? spotApiKey
+            : process.env.SPOT_API_KEY;
           const options = module.exports.buildPOSTRequestOptions(
             apiURL,
             DEPLOY_SPOT_API_PATH,
